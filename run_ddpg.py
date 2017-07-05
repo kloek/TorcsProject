@@ -48,7 +48,7 @@ def run_ddpg():
 
 
     # initiate an agent, construct includes some of ddpg algo steps
-    state_dim = 29 #TODO
+    state_dim = 27 #TODO
     action_dim = 3
     agent = Agent(state_dim=state_dim, action_dim=action_dim)
     print("2. Agent is created!")
@@ -64,6 +64,7 @@ def run_ddpg():
 
     ### for episode = 1, M
     for episode in range(episode_count):
+        print(" starting episode: " + str(episode))
 
         # train_indicator is equal to is_training but set to false when testing
         train_indicator = (is_training and not((episode > 10) and (episode % 20 == 0)))
@@ -103,13 +104,16 @@ def run_ddpg():
             if(train_indicator):
                 agent.train()
 
+            print("step: " + str(step) + ",  a_t=" + str(a_t) + ", r_t=" + str(r_t))
+
         ### end for
     ### end for
 
 def create_state(ob):
     # TODO this is without vision!!!!!
     # print("observation=" + str(ob)) #TODO; ob doesnt contain the right stuff! Make sure it contains everything!!!
-    s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
+    #s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
+    s_t = np.hstack((ob.track, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
     return s_t
 
 def do_early_stop(epsilon, train_indicator):

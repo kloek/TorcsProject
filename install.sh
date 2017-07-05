@@ -1,11 +1,11 @@
 #!/bin/bash
 
-folder="$HOME/Documents/Thesis_work/gym_torcs/"
+gym_torcs="$HOME/Documents/Thesis_work/gym_torcs/"
 
 # agents folder
-rm -rf $folder/agents
-cp -r agents $folder/agents
+rm -rf $gym_torcs/agents
+cp -r agents $gym_torcs/agents
 
 # run file
-rm $folder/run_ddpg.py
-cp run_ddpg.py $folder
+rm $gym_torcs/run_ddpg.py
+cp run_ddpg.py $gym_torcs

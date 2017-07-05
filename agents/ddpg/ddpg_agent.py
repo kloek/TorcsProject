@@ -62,19 +62,36 @@ class Agent(AbstractAgent):
     def train(self):
 
         ### Sample a random minibatch of N (BATCH_SIZE) transitions (s_i, a_i, r_i, s_i+1) from ReplayBuffer
-        batch = self.replay_buffer.getBatch(self.BATCH_SIZE)
+        batch, batch_size = self.replay_buffer.getBatch(self.BATCH_SIZE) # returns batch_size since it can be smaller than self.BATCH_SIZE
+        state_batch = np.asarray([data[0] for data in batch])
+        action_batch = np.asarray([data[1] for data in batch])
+        reward_batch = np.asarray([data[2] for data in batch])
+        next_state_batch = np.asarray([data[3] for data in batch])
+        done_batch = np.asarray([data[4] for data in batch])
 
         ### Set yi = ri + γQ′(si+1,μ′(si+1|θμ′)|θQ′)
-        # TODO
+        next_action_batch = self.actor_network.target_actions(next_state_batch)
+        q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
+        y_batch = []
+        for i in range(batch_size):
+            if done_batch[i]:
+                y_batch.append(reward_batch[i])
+            else:
+                y_batch.append(reward_batch[i] + self.GAMMA * q_value_batch[i])
+
+        y_batch = np.resize(y_batch, [batch_size, 1])
 
         ### Update critic by minimizing the loss:
-        # TODO
+        self.critic_network.train(y_batch, state_batch, action_batch)
 
         ### Update the actor policy using the sampled policy gradient:
-        # TODO
+        action_batch_for_gradients = self.actor_network.actions(state_batch)
+        q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
+        self.actor_network.train(q_gradient_batch, state_batch)
 
         ### Update the target networks:
-        # TODO
+        self.actor_network.update_target()
+        self.critic_network.update_target()
 
     def get_name(self):
         return "DDPG Agent"

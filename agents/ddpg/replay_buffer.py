@@ -23,10 +23,13 @@ class ReplayBuffer(object):
 
     def getBatch(self, batch_size):
         # Randomly sample batch_size examples
-        if self.num_experiences < batch_size:
-            return random.sample(self.buffer, self.num_experiences)
-        else:
-            return random.sample(self.buffer, batch_size)
+        size = min(batch_size, self.num_experiences)
+        return random.sample(self.buffer,size), size
+
+        #if self.num_experiences < batch_size:
+        #   return random.sample(self.buffer, self.num_experiences)
+        #else:
+        #    return random.sample(self.buffer, batch_size)
 
     def size(self):
         return self.buffer_size
