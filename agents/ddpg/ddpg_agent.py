@@ -48,11 +48,22 @@ class Agent(AbstractAgent):
         ### Initialize a random process for action exploration (Ornstein-Uhlenbeck process)
         self.OU = OU()
 
-    def act(self, s_t, is_training ,done):
+    def act(self, s_t, is_training, epsilon ,done):
         ## create action based on observed state s_t
         #TODO not adapted to diffrent action dims!!!!
         # print("s_t = " + str(s_t))
+
         action = self.actor_network.action(s_t)
+
+        if(is_training):
+            # OU function(self, x, mu, theta, sigma)
+            noise_t = np.zeros(self.action_dim)
+            noise_t[0] = epsilon * self.OU.function(action[0], 0.0, 0.60, 0.80)
+            noise_t[1] = epsilon * self.OU.function(action[1], 0.5, 1.00, 0.10)
+            noise_t[2] = epsilon * self.OU.function(action[2], -0.1, 1.00, 0.05)
+            action = action + noise_t
+
+
         action[0] = np.clip(action[0], -1, 1)
         action[1] = np.clip(action[1], 0, 1)
         action[2] = np.clip(action[2], 0, 1)

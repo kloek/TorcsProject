@@ -4,6 +4,7 @@ from gym_torcs import TorcsEnv
 from agents.ddpg.ddpg_agent import Agent
 import numpy as np
 import random
+import math
 
 # Notes for readability: comments with tripple sharp (###) is the steps of main algorithm
 # these tripple comments are spread across multiple files since diffrent part of algo is performed by diffrent classes
@@ -15,7 +16,7 @@ epsilon_start  = 1.0 #TODO sys arg or config file
 
 def run_ddpg():
     # Run time
-    episode_count = 10 #TODO sys arg or config file
+    episode_count = 100 #TODO sys arg or config file
     max_steps = 50 #TODO sys arg or config file
 
     # initial values
@@ -25,7 +26,7 @@ def run_ddpg():
 
 
     # Gym_torcs
-    vision = False
+    vision = True
     throttle = True
     gear_change = True
     #brake = true #TODO
@@ -48,7 +49,7 @@ def run_ddpg():
 
 
     # initiate an agent, construct includes some of ddpg algo steps
-    state_dim = 27 #TODO
+    state_dim = 29 #TODO
     action_dim = 3
     agent = Agent(state_dim=state_dim, action_dim=action_dim)
     print("2. Agent is created!")
@@ -64,20 +65,27 @@ def run_ddpg():
 
     ### for episode = 1, M
     for episode in range(episode_count):
-        print(" starting episode: " + str(episode))
+        print("=============================================================")
+        print(" starting episode: " + str(episode) +"/"+ str(episode_count))
 
-        # train_indicator is equal to is_training but set to false when testing
+        # start with short eppisodes then increase them!
+        if(max_steps < 300):
+            max_steps += 5
+
+        # train_indicator is equal to is_training but set to false when testing every 20th episode!
         train_indicator = (is_training and not((episode > 10) and (episode % 20 == 0)))
+        if(not train_indicator):
+            print("this is a test episode!!")
 
         ### Initialize a random process N for action exploration
-        #TODO Done in ddpg_agent constructor...
+        #Done in ddpg_agent constructor... OU
 
         #TODO Early stop? - train indicator is not is_training, but wheter a test run is active or not!
-        early_stop = do_early_stop(epsilon, train_indicator)
+        #early_stop = do_early_stop(epsilon, train_indicator)
 
         ### Receive initial observation state s_t
-        # relaunch TORCS every 3 episode because of the memory leak error
-        ob = env.reset(relaunch=((episode % 3) == 0))
+        # relaunch TORCS every 5 episode because of the memory leak error
+        ob = env.reset(relaunch=((episode % 5) == 0))
         s_t = create_state(ob)
 
 
@@ -85,12 +93,7 @@ def run_ddpg():
         for step in range(max_steps):
 
             ### Execute action at and observe reward rt and observe new state st+1
-            a_t = agent.act(s_t=s_t, is_training=is_training, done=done)
-
-            #TODO TEST-CODE to be able to run before act is implemented!
-            #if a_t == []:
-               # a_t = env.action_space.sample()
-               # print("action="+str(a_t))
+            a_t = agent.act(s_t=s_t, is_training=is_training, epsilon=epsilon, done=done)
 
             # send that action to the environment
             ob, r_t, done, info = env.step(a_t)
@@ -98,22 +101,47 @@ def run_ddpg():
 
             ### Store transition (st,at,rt,st+1) in ReplayBuffer
             agent.replay_buffer.add(s_t, a_t, r_t, s_t1, done)
-
+            s_t = s_t1
 
             ### training (includes 5 steps from ddpg algo):
+            trainstr = ""
             if(train_indicator):
+                trainstr = "is training"
                 agent.train()
 
-            print("step: " + str(step) + ",  a_t=" + str(a_t) + ", r_t=" + str(r_t))
+            print("step: " + str(step) + ",  a_t=" + str(a_t) + ", r_t=" + str(r_t) + " " + trainstr  + " and done = " + str(done) )
 
+            # so that this loop stops if torcs is restarting or done!
+            if done:
+                break
         ### end for
     ### end for
 
 def create_state(ob):
     # TODO this is without vision!!!!!
-    # print("observation=" + str(ob)) #TODO; ob doesnt contain the right stuff! Make sure it contains everything!!!
-    #s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
-    s_t = np.hstack((ob.track, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
+    """names = ['angle',
+         'curLapTime',
+         'damage',
+         'distFromStart',
+         'distRaced',
+         'focus',
+         'fuel',
+         'gear',
+         'lastLapTime',
+         'opponents',
+         'racePos',
+         'rpm',
+         'speedX',
+         'speedY',
+         'speedZ',
+         'track',
+         'trackPos',
+         'wheelSpinVel',
+         'z']"""
+
+    # print("observation=" + str(ob))
+    # some numbers are scaled, se scale_observation(..) in gym_torcs
+    s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
     return s_t
 
 def do_early_stop(epsilon, train_indicator):
