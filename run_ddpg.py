@@ -14,10 +14,14 @@ import math
 is_training =  1  #TODO sys arg or config file
 epsilon_start  = 1.0 #TODO sys arg or config file
 
+
+
 def run_ddpg():
     # Run time
     episode_count = 100 #TODO sys arg or config file
     max_steps = 50 #TODO sys arg or config file
+
+    best_reward = 0
 
     # initial values
     reward = 0
@@ -98,6 +102,8 @@ def run_ddpg():
             # send that action to the environment
             ob, r_t, done, info = env.step(a_t)
             s_t1 = create_state(ob) # next state, after action a_t
+            if best_reward < r_t:
+                best_reward = r_t
 
             ### Store transition (st,at,rt,st+1) in ReplayBuffer
             agent.replay_buffer.add(s_t, a_t, r_t, s_t1, done)
@@ -106,10 +112,10 @@ def run_ddpg():
             ### training (includes 5 steps from ddpg algo):
             trainstr = ""
             if(train_indicator):
-                trainstr = "is training"
+                trainstr = ", is training and "
                 agent.train()
 
-            print("step: " + str(step) + ",  a_t=" + str(a_t) + ", r_t=" + str(r_t) + " " + trainstr  + " and done = " + str(done) )
+            print("step: " + str(step) + ",  a_t=" + str(a_t) + ", r_t=" + str(r_t) + "/"+ str(best_reward) + trainstr  + " done = " + str(done) )
 
             # so that this loop stops if torcs is restarting or done!
             if done:
