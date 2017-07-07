@@ -59,13 +59,21 @@ class Critic(object):
         state_input = tf.placeholder("float", [None, state_dim])
         action_input = tf.placeholder("float", [None, action_dim])
 
-        W1 = self.variable([state_dim, layer1_size], state_dim)
-        b1 = self.variable([layer1_size], state_dim)
-        W2 = self.variable([layer1_size, layer2_size], layer1_size + action_dim)
-        W2_action = self.variable([action_dim, layer2_size], layer1_size + action_dim)
-        b2 = self.variable([layer2_size], layer1_size + action_dim)
+        W1_shape = [state_dim, layer1_size]
+        W1 = tf.Variable(tf.random_uniform(W1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)))
+        b1_shape = [layer1_size]
+        b1 = tf.Variable(tf.random_uniform(b1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)))
+
+
+        W2_shape = [layer1_size, layer2_size]
+        W2 = tf.Variable(tf.random_uniform(W2_shape, -1 / math.sqrt(layer1_size+action_dim), 1 / math.sqrt(layer1_size+action_dim)))
+        W2_action = tf.Variable(tf.random_uniform([action_dim, layer2_size], -1 / math.sqrt(layer1_size+action_dim), 1 / math.sqrt(layer1_size+action_dim)))
+        b2_shape = [layer2_size]
+        b2 = tf.Variable(tf.random_uniform(b2_shape, -1 / math.sqrt(layer1_size+action_dim), 1 / math.sqrt(layer1_size+action_dim)))
+
         W3 = tf.Variable(tf.random_uniform([layer2_size, 1], -3e-3, 3e-3))
         b3 = tf.Variable(tf.random_uniform([1], -3e-3, 3e-3))
+
 
         layer1 = tf.nn.relu(tf.matmul(state_input, W1) + b1)
         layer2 = tf.nn.relu(tf.matmul(layer1, W2) + tf.matmul(action_input, W2_action) + b2)
@@ -117,6 +125,3 @@ class Critic(object):
             self.state_input: state_batch,
             self.action_input: action_batch
         })
-
-    def variable(self, shape, f):
-        return tf.Variable(tf.random_uniform(shape, -1 / math.sqrt(f), 1 / math.sqrt(f)))

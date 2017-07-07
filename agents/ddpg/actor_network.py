@@ -50,12 +50,20 @@ class Actor(object):
         print("while creating actor, state_dim = " + str(state_dim))
 
         #TODO not adapted to conv / image input
+
+        # input
         state_input = tf.placeholder("float", [None, state_dim])
 
-        W1 = self.variable([state_dim, layer1_size], state_dim)
-        b1 = self.variable([layer1_size], state_dim)
-        W2 = self.variable([layer1_size, layer2_size], layer1_size)
-        b2 = self.variable([layer2_size], layer1_size)
+        W1_shape = [state_dim, layer1_size]
+        W1 = tf.Variable(tf.random_uniform(W1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)))
+        b1_shape = [layer1_size]
+        b1 = tf.Variable(tf.random_uniform(b1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)))
+
+        W2_shape = [layer1_size, layer2_size]
+        W2 = tf.Variable(tf.random_uniform(W2_shape, -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)))
+        b2_shape = [layer2_size]
+        b2 = tf.Variable(tf.random_uniform(b2_shape, -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)))
+
         # W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
         # b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
 
@@ -83,6 +91,7 @@ class Actor(object):
 
     # TODO, could original "create_network" be used for both?
     def create_target_network(self, state_dim, action_dim, net):
+
         state_input = tf.placeholder("float", [None, state_dim])
         ema = tf.train.ExponentialMovingAverage(decay=1 - TAU)
         target_update = ema.apply(net)
@@ -136,8 +145,8 @@ class Actor(object):
             self.target_state_input: state_batch
         })
 
-    def variable(self,shape,f):
-        return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))
+    """def variable(self,shape,f):
+        return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))"""
 
     # TODO create separate network functions (object) that works for Q, Q', u, and u'
     # TODO and then include these saving and loading functions there!
