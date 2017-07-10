@@ -145,6 +145,16 @@ class Actor(object):
             self.target_state_input: state_batch
         })
 
+    def print_settings(self, settings_file):
+        settings_text = ["\n\n==== from actor network ====" + "\n",
+                         "LAYER1_SIZE = " + str(LAYER1_SIZE) + "\n",
+                         "LAYER2_SIZE = " + str(LAYER2_SIZE) + "\n",
+                         "LEARNING_RATE = " + str(LEARNING_RATE) + "\n",
+                         "TAU = " + str(TAU) + "\n",
+                         "BATH_SIZE = " + str(BATH_SIZE) + "\n"]
+        for line in settings_text:
+            settings_file.write(line)  # print settings to file
+
     """def variable(self,shape,f):
         return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))"""
 

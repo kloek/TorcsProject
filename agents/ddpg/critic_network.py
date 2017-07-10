@@ -125,3 +125,13 @@ class Critic(object):
             self.state_input: state_batch,
             self.action_input: action_batch
         })
+
+    def print_settings(self, settings_file):
+        settings_text = ["\n\n==== from critic network ====" + "\n",
+                         "LAYER1_SIZE = " + str(LAYER1_SIZE) + "\n",
+                         "LAYER2_SIZE = " + str(LAYER2_SIZE) + "\n",
+                         "LEARNING_RATE = " + str(LEARNING_RATE) + "\n",
+                         "TAU = " + str(TAU) + "\n",
+                         "L2 = " + str(L2) + "\n"]
+        for line in settings_text:
+            settings_file.write(line)  # print settings to file

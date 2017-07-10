@@ -34,6 +34,7 @@ class Agent(AbstractAgent):
         self.state_dim = state_dim  # dimention of states e.g vision size and other sensors!
         self.action_dim = action_dim  # dimention of action e.g 3 for steering, throttle, and break
 
+
         # Ensure action bound is symmetric
         self.time_step = 0
         self.sess = tf.InteractiveSession()
@@ -106,3 +107,15 @@ class Agent(AbstractAgent):
 
     def get_name(self):
         return "DDPG Agent"
+
+    def print_settings(self, settings_file):
+        settings_text = ["\n\n==== from agent ====" + "\n",
+                        "REPLAY_BUFFER_SIZE = " + str(self.REPLAY_BUFFER_SIZE) + "\n",
+                         "REPLAY_START_SIZE = " + str(self.REPLAY_START_SIZE) + "\n",
+                         "BATCH_SIZE = " + str(self.BATCH_SIZE) + "\n",
+                         "GAMMA = " + str(self.GAMMA) + "\n"]
+        for line in settings_text:
+            settings_file.write(line)  # print settings to file
+
+        self.actor_network.print_settings(settings_file)
+        self.critic_network.print_settings(settings_file)

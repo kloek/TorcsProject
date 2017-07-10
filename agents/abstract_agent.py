@@ -13,7 +13,7 @@ class AbstractAgent(object):
     # rpm, wheelSpinVel are raw values and then needed to be preprocessed.
     # vision is given as a tensor with size of (64*64, 3) = (4096, 3) <-- rgb
     # and values are in [0, 255]
-    def act(self, state, is_training, done):
+    def act(self, s_t, is_training, epsilon ,done):
         raise NotImplementedError
 
     def train(self):
@@ -21,4 +21,8 @@ class AbstractAgent(object):
 
     # name of agent
     def get_name(self):
+        raise NotImplementedError
+
+    # print settings to settings file
+    def print_settings(self, settings_file):
         raise NotImplementedError
