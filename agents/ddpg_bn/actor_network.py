@@ -51,7 +51,7 @@ class Actor(object):
         layer1_size = LAYER1_SIZE
         layer2_size = LAYER2_SIZE
 
-        print("while creating actor, state_dim = " + str(state_dim))
+        #print("while creating actor, state_dim = " + str(state_dim))
 
         #TODO not adapted to conv / image input
 
@@ -59,30 +59,31 @@ class Actor(object):
         state_input = tf.placeholder("float", [None, state_dim])
         is_training = tf.placeholder(tf.bool) # place holder for BN
 
-        W1_shape = [state_dim, layer1_size]
-        W1 = tf.Variable(tf.random_uniform(W1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)))
-        b1_shape = [layer1_size]
-        b1 = tf.Variable(tf.random_uniform(b1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)))
-
-        W2_shape = [layer1_size, layer2_size]
-        W2 = tf.Variable(tf.random_uniform(W2_shape, -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)))
-        b2_shape = [layer2_size]
-        b2 = tf.Variable(tf.random_uniform(b2_shape, -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)))
-
-        # W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
-        # b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
-
-        W_steer = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4))
-        b_steer = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4))
-
-        W_accel = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4))
-        b_accel = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4))
-
-        W_brake = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4))
-        b_brake = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4))
-
         layer0_bn = self.batch_norm_layer(state_input, training_phase=is_training, scope_bn='batch_norm_0',
                                           activation=tf.identity)
+
+        W1_shape = [state_dim, layer1_size]
+        W1 = tf.Variable(tf.random_uniform(W1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="W1")
+        b1_shape = [layer1_size]
+        b1 = tf.Variable(tf.random_uniform(b1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="b1")
+
+        W2_shape = [layer1_size, layer2_size]
+        W2 = tf.Variable(tf.random_uniform(W2_shape, -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="W2")
+        b2_shape = [layer2_size]
+        b2 = tf.Variable(tf.random_uniform(b2_shape, -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="b2")
+
+        # W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3), name="W3")
+        # b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3), name="b3")
+
+        W_steer = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_steer")
+        b_steer = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_steer")
+
+        W_accel = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_accel")
+        b_accel = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_accel")
+
+        W_brake = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_brake")
+        b_brake = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_brake")
+
         layer1 = tf.matmul(layer0_bn, W1) + b1
         layer1_bn = self.batch_norm_layer(layer1, training_phase=is_training, scope_bn='batch_norm_1',
                                           activation=tf.nn.relu)
