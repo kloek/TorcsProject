@@ -4,10 +4,11 @@ import numpy as np
 import tensorflow as tf
 
 from agents.abstract_agent import AbstractAgent
-from agents.ddpg.OU import OU
 from agents.ddpg.actor_network import Actor
 from agents.ddpg.critic_network import Critic
-from agents.ddpg.replay_buffer import ReplayBuffer
+
+from agents.parts.OU import OU
+from agents.parts.replay_buffer import ReplayBuffer
 
 
 # Notes for readability: comments with tripple sharp (###) is the main steps of ddpg algorithm
