@@ -4,8 +4,8 @@ import numpy as np
 import tensorflow as tf
 
 from agents.abstract_agent import AbstractAgent
-from agents.ddpg.actor_network import Actor
-from agents.ddpg.critic_network import Critic
+from agents.ddpg_original.actor_network import Actor
+from agents.ddpg_original.critic_network import Critic
 
 from agents.parts.OU import OU
 from agents.parts.replay_buffer import ReplayBuffer
