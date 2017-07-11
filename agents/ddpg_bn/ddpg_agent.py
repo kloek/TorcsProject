@@ -19,6 +19,8 @@ from agents.parts.replay_buffer import ReplayBuffer
 
 class Agent(AbstractAgent):
 
+    AGENT_NAME = "DDPG BN"
+
     # Hyper Parameters:
     REPLAY_BUFFER_SIZE = 100000
     REPLAY_START_SIZE = 100
@@ -107,7 +109,7 @@ class Agent(AbstractAgent):
         self.critic_network.update_target()
 
     def get_name(self):
-        return "DDPG Agent"
+        return self.AGENT_NAME
 
     def print_settings(self, settings_file):
         settings_text = ["\n\n==== from agent ====" + "\n",
