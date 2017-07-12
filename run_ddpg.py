@@ -37,13 +37,12 @@ class agent_runner(object):
     epsilon = epsilon_start
 
     # Gym_torcs
-    vision = False
+    vision = True # has to be true since this implementation is with vision/cnns
     throttle = True
     gear_change = False
-    # brake = true #TODO
 
     # env and agent
-    state_dim = 29  # TODO
+    state_dim = 68  # TODO
     action_dim = 3
 
     env = None
@@ -202,7 +201,10 @@ class agent_runner(object):
 
         # print("observation=" + str(ob))
         # some numbers are scaled, se scale_observation(..) in gym_torcs
-        s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        #s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        s_t = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        #state_dim = 5 + 36 + 19 + 1 + 1 + 1 + 4 + 1 =
+        #print("s_t of size " + str(s_t.size) + " = " + str(s_t))
         return s_t
 
     def do_early_stop(epsilon, train_indicator):
