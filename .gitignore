@@ -28,6 +28,9 @@ wheels/
 .installed.cfg
 *.egg
 
+# has to be there for my parts folder in agentss!
+!agents/parts/
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
