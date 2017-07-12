@@ -17,13 +17,14 @@ class agent_runner(object):
 
     is_training = 1  # TODO sys arg or config file
     epsilon_start = 1.0  # TODO sys arg or config file
-    episode_count = 1  # TODO sys arg or config file
-    max_steps = 50  # TODO sys arg or config file
-
-    best_reward = 0
+    episode_count = 100  # TODO sys arg or config file
+    max_steps = 500  # TODO sys arg or config file
 
     # initial values
     reward = 0
+    total_steps = 0 # total nr of steps over all episodes
+    best_reward = 0 # best reward over all episodes
+    start_time = None
     done = False
     epsilon = epsilon_start
 
@@ -64,8 +65,8 @@ class agent_runner(object):
         print("2. Agent is created!")
 
         # create a folder in runs for saving info about the run, result, and trained nets!!
-        start_time = datetime.datetime.now()
-        self.folder_name = "runs/" + start_time.strftime("%Y-%m-%d %H:%M:%S - " + self.agent.get_name())
+        self.start_time = datetime.datetime.now()
+        self.folder_name = "runs/" + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + self.agent.get_name())
         os.makedirs(self.folder_name)
 
         # create a settings file ( only for saving setting, not for applying settings!!!!
@@ -103,6 +104,7 @@ class agent_runner(object):
 
             ### for t = 1, T
             for step in range(self.max_steps):
+                self.total_steps += 1
 
                 ### Execute action at and observe reward rt and observe new state st+1
                 a_t = self.agent.act(s_t=s_t, is_training=self.is_training, epsilon=self.epsilon, done=done)
@@ -118,12 +120,14 @@ class agent_runner(object):
                 s_t = s_t1
 
                 ### training (includes 5 steps from ddpg algo):
-                trainstr = ""
                 if(train_indicator):
-                    trainstr = ", is training and "
                     self.agent.train()
-
-                print("step: " + str(step) + ",  a_t=" + str(a_t) + ", r_t=" + str(r_t) + "/"+ str(self.best_reward) + trainstr  + " done = " + str(done) )
+                    if((step % 5) == 0):
+                        print("Training: ep="+str(episode) + ", step=" + str(step) + " total_steps="+str(self.total_steps)+", a_t=" + str(a_t))
+                else:
+                    self.best_reward = max(r_t, self.best_reward)
+                    print("Testing: ep="+str(episode) + "step=" + str(step) + ", r_t=" + str(r_t) + "/" + str(self.best_reward))
+                    #TODO save results here! !!!!!!
 
                 # so that this loop stops if torcs is restarting or done!
                 if done:
