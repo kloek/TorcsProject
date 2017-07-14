@@ -8,6 +8,12 @@ import math
 import os
 import datetime
 
+from agents.parts.results import results
+
+#test
+import matplotlib
+import matplotlib.pyplot as plt
+
 # Notes for readability: comments with tripple sharp (###) is the steps of main algorithm
 # these tripple comments are spread across multiple files since diffrent part of algo is performed by diffrent classes
 # such as run_ddpg, which contains eppisode and steps loops... ddpg_agent which contains agent related functions, and so on....
@@ -15,15 +21,17 @@ import datetime
 
 class agent_runner(object):
 
-    is_training = 1  # TODO sys arg or config file
-    epsilon_start = 1.0  # TODO sys arg or config file
-    episode_count = 100  # TODO sys arg or config file
-    max_steps = 500  # TODO sys arg or config file
+    is_training = True  # TODO sys arg or config file
+    test_frequency = 5 # TODO sys arg or config file # how often to test /episodes
+    epsilon_start = 0.9  # TODO sys arg or config file
+    episode_count = 10000  # TODO sys arg or config file
+    max_steps = 100  # TODO sys arg or config file
 
     # initial values
     reward = 0
+    best_total_reward = 0  # best reward over all episodes and steps
+
     total_steps = 0 # total nr of steps over all episodes
-    best_reward = 0 # best reward over all episodes
     start_time = None
     done = False
     epsilon = epsilon_start
@@ -44,6 +52,7 @@ class agent_runner(object):
     # for saving settings
     folder_name = None
     settings_file = None
+    result = None
 
     def __init__(self):
         # Generate a Torcs environment
@@ -68,12 +77,16 @@ class agent_runner(object):
         self.start_time = datetime.datetime.now()
         self.folder_name = "runs/" + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + self.agent.get_name())
         os.makedirs(self.folder_name)
+        os.makedirs(self.folder_name+"/saved_networks")
 
         # create a settings file ( only for saving setting, not for applying settings!!!!
         self.settings_file = open(self.folder_name + "/" + "settings", "a")
 
         self.print_settings(settings_file=self.settings_file)  # print settings from runfile
         self.agent.print_settings(settings_file=self.settings_file)  # print settings from agent
+
+        self.result = results(folder=self.folder_name)
+
 
     def run_ddpg(self):
 
@@ -82,13 +95,12 @@ class agent_runner(object):
             print("=============================================================")
             print(" starting episode: " + str(episode) +"/"+ str(self.episode_count))
             done = self.done
-
-            # start with short eppisodes then increase them!
-            if(self.max_steps < 300):
-                self.max_steps += 5
+            total_reward = 0.
+            save_nets = False
 
             # train_indicator is equal to is_training but set to false when testing every 20th episode!
             train_indicator = (self.is_training and not((episode > 10) and (episode % 20 == 0)))
+            train_indicator = (self.is_training and not ((not episode == 0) and (episode % self.test_frequency == 0)))
 
             ### Initialize a random process N for action exploration
             #Done in ddpg_agent constructor... OU
@@ -107,30 +119,45 @@ class agent_runner(object):
                 self.total_steps += 1
 
                 ### Execute action at and observe reward rt and observe new state st+1
-                a_t = self.agent.act(s_t=s_t, is_training=self.is_training, epsilon=self.epsilon, done=done)
+                # 1. get that action (is_training=true gives noisy action!!)
+                a_t = self.agent.act(s_t=s_t, is_training=train_indicator, epsilon=self.epsilon, done=done)
 
-                # send that action to the environment
+                # 2. send that action to the environment and observe rt and new state
                 ob, r_t, done, info = self.env.step(a_t)
                 s_t1 = self.create_state(ob) # next state, after action a_t
-                if self.best_reward < r_t:
-                    self.best_reward = r_t
+
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
-                self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, done)
+                self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, int(done))
+                total_reward += r_t
                 s_t = s_t1
 
                 ### training (includes 5 steps from ddpg algo):
                 if(train_indicator):
                     self.agent.train()
                     if((step % 5) == 0):
-                        print("Training: ep="+str(episode) + ", step=" + str(step) + " total_steps="+str(self.total_steps)+", a_t=" + str(a_t))
+                        print("Training: ep="+str(episode) +" total_steps="+str(self.total_steps)+", a_t=" + str(a_t))
                 else:
-                    self.best_reward = max(r_t, self.best_reward)
-                    print("Testing: ep="+str(episode) + "step=" + str(step) + ", r_t=" + str(r_t) + "/" + str(self.best_reward))
-                    #TODO save results here! !!!!!!
+                    # Time to actually test this badboy!!
+                    if ((step % 5) == 0):
+                        print("Testing: ep="+str(episode) + " total_steps="+str(self.total_steps)+", a_t=" + str(a_t) + ", r_t=" + str(r_t) + "/"+ str(total_reward) +"/" + str(self.best_total_reward))
+                    if(total_reward > self.best_total_reward):
+                        self.best_total_reward = total_reward # update best reward
+                        save_nets = True
+
+                    # add result to result saver! when testing
+                    self.result.add(row=[episode,self.total_steps,self.best_total_reward,total_reward,r_t,self.epsilon])
+                    #self.result.save(episode=episode)
 
                 # so that this loop stops if torcs is restarting or done!
                 if done:
+                    print("episode is done")
+                    if(not train_indicator):
+                        print("this is testing round so saving results")
+                        self.result.save(episode=episode)
+                        if(save_nets):  # save best network!
+                            print("saving nets since they performed better")
+                            self.agent.save_networks(global_step=self.total_steps,run_folder=self.folder_name)
                     break
             ### end for
         ### end for
@@ -183,10 +210,10 @@ class agent_runner(object):
         eps_early = max(epsilon, 0.10)
         return (random_number < (1.0 - eps_early)) and (train_indicator == 1)
 
+    # everything that should be done at end of run!
     def finish(self):
         # add finished to the run folder!
         os.system("mv " + self.folder_name.replace(" ", "\ ")  + " " + (self.folder_name+" FINISHED").replace(" ", "\ "))
-
         self.env.end()  # This is for shutting down TORCS
 
 if __name__ == "__main__":

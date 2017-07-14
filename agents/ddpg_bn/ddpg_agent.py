@@ -55,7 +55,6 @@ class Agent(AbstractAgent):
     def act(self, s_t, is_training, epsilon ,done):
         ## create action based on observed state s_t
         #TODO not adapted to diffrent action dims!!!!
-        # print("s_t = " + str(s_t))
 
         action = self.actor_network.action(s_t)
 
@@ -71,7 +70,7 @@ class Agent(AbstractAgent):
         action[0] = np.clip(action[0], -1, 1)
         action[1] = np.clip(action[1], 0, 1)
         action[2] = np.clip(action[2], 0, 1)
-        # print "Action:", action
+        # print("Action:" + str(action))
         return action
 
     def train(self):
@@ -96,6 +95,7 @@ class Agent(AbstractAgent):
 
         y_batch = np.resize(y_batch, [batch_size, 1])
 
+
         ### Update critic by minimizing the loss:
         self.critic_network.train(y_batch, state_batch, action_batch)
 
@@ -112,6 +112,8 @@ class Agent(AbstractAgent):
         return self.AGENT_NAME
 
     def print_settings(self, settings_file):
+
+        # 1. print settings of this agent
         settings_text = ["\n\n==== from agent ====" + "\n",
                         "REPLAY_BUFFER_SIZE = " + str(self.REPLAY_BUFFER_SIZE) + "\n",
                          "REPLAY_START_SIZE = " + str(self.REPLAY_START_SIZE) + "\n",
@@ -119,6 +121,17 @@ class Agent(AbstractAgent):
                          "GAMMA = " + str(self.GAMMA) + "\n"]
         for line in settings_text:
             settings_file.write(line)  # print settings to file
-
+        # 2. print settings of actor
         self.actor_network.print_settings(settings_file)
+
+        # 3. print settings of critic
         self.critic_network.print_settings(settings_file)
+
+
+    # TODO!!!!!!
+    def save_results(self):
+        print("")
+
+    def save_networks(self, global_step, run_folder):
+        self.actor_network.save_network(global_step=global_step, run_folder=run_folder)
+        self.critic_network.save_network(global_step=global_step, run_folder=run_folder)

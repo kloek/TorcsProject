@@ -26,3 +26,9 @@ class AbstractAgent(object):
     # print settings to settings file
     def print_settings(self, settings_file):
         raise NotImplementedError
+
+    def save_results(self):
+        raise NotImplementedError
+
+    def save_networks(self):
+        raise NotImplementedError

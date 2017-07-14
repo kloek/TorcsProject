@@ -43,6 +43,7 @@ class Critic(object):
         init = tf.global_variables_initializer()
         self.session.run(init)
 
+        self.saver = tf.train.Saver()
         self.update_target()
 
     def create_training_method(self):
@@ -162,3 +163,16 @@ class Critic(object):
                          "L2 = " + str(L2) + "\n"]
         for line in settings_text:
             settings_file.write(line)  # print settings to file
+
+
+    def load_network(self):
+        checkpoint = tf.train.get_checkpoint_state("saved_critic_networks")
+        if checkpoint and checkpoint.model_checkpoint_path:
+            self.saver.restore(self.session, checkpoint.model_checkpoint_path)
+            print("Successfully loaded:" + str(checkpoint.model_checkpoint_path))
+        else:
+            print("Could not find old network weights")
+
+    def save_network(self,global_step,run_folder):
+        print('save acritic-network for global_step: '+ str(global_step))
+        self.saver.save(self.session, run_folder+ '/saved_networks/' + 'critic-network', global_step = global_step)

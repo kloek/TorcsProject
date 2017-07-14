@@ -20,7 +20,6 @@ class Actor(object):
         self.state_dim = state_dim
         self.action_dim = action_dim
 
-
         # create actor network
 
         self.state_input,\
@@ -43,8 +42,11 @@ class Actor(object):
         init = tf.global_variables_initializer();
         self.session.run(init)
 
+        self.saver = tf.train.Saver()
         self.update_target()
         # self.load_network()
+
+
 
 
     def create_network(self, state_dim, action_dim):
@@ -187,22 +189,17 @@ class Actor(object):
             settings_file.write(line)  # print settings to file
 
 
-    """def variable(self,shape,f):
-        return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))"""
+    # TODO include these saving and loading functions there!
 
-    # TODO create separate network functions (object) that works for Q, Q', u, and u'
-    # TODO and then include these saving and loading functions there!
-    '''
+    #TODO this method isnt correct based on my implementation
     def load_network(self):
-        self.saver = tf.train.Saver()
         checkpoint = tf.train.get_checkpoint_state("saved_actor_networks")
         if checkpoint and checkpoint.model_checkpoint_path:
-            self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
-            print "Successfully loaded:", checkpoint.model_checkpoint_path
+            self.saver.restore(self.session, checkpoint.model_checkpoint_path)
+            print("Successfully loaded:" + str(checkpoint.model_checkpoint_path))
         else:
-            print "Could not find old network weights"
+            print("Could not find old network weights")
 
-    def save_network(self,time_step):
-        print 'save actor-network...',time_step
-        self.saver.save(self.sess, 'saved_actor_networks/' + 'actor-network', global_step = time_step)
-    '''
+    def save_network(self,global_step,run_folder):
+        print('save actor-network for global_step: '+ str(global_step))
+        self.saver.save(self.session, run_folder+ '/saved_networks/' + 'actor-network', global_step = global_step)
