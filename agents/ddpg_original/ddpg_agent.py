@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import tensorflow as tf
+import numpy as np
 
 from agents.abstract_agent import AbstractAgent
 from agents.ddpg_original.actor_network import Actor
