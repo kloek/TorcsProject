@@ -22,10 +22,10 @@ import matplotlib.pyplot as plt
 class agent_runner(object):
 
     is_training = True  # TODO sys arg or config file
-    test_frequency = 5 # TODO sys arg or config file # how often to test /episodes
-    epsilon_start = 0.9  # TODO sys arg or config file
+    test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
+    epsilon_start = 0.95  # TODO sys arg or config file
     episode_count = 10000  # TODO sys arg or config file
-    max_steps = 100  # TODO sys arg or config file
+    max_steps = 1000  # TODO sys arg or config file
 
     # initial values
     reward = 0
@@ -40,7 +40,6 @@ class agent_runner(object):
     vision = False
     throttle = True
     gear_change = False
-    # brake = true #TODO
 
     # env and agent
     state_dim = 29  # TODO
@@ -120,6 +119,8 @@ class agent_runner(object):
 
                 ### Execute action at and observe reward rt and observe new state st+1
                 # 1. get that action (is_training=true gives noisy action!!)
+                epsilon -= 1.0 / 100000 #TODO replace with var and add to settings!!!
+                epsilon = max(epsilon, 0.1)
                 a_t = self.agent.act(s_t=s_t, is_training=train_indicator, epsilon=self.epsilon, done=done)
 
                 # 2. send that action to the environment and observe rt and new state
