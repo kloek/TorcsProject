@@ -33,9 +33,10 @@ class Agent(AbstractAgent):
     OU = None
 
     #Construct ddpg agent
-    def __init__(self, state_dim, action_dim):
-        self.state_dim = state_dim  # dimention of states e.g vision size and other sensors!
-        self.action_dim = action_dim  # dimention of action e.g 3 for steering, throttle, and break
+    def __init__(self, state_sensors_dim, state_vision_dim, action_dim):
+        self.state_sensors_dim = state_sensors_dim
+        self.state_vision_dim = state_vision_dim
+        self.action_dim = action_dim
 
 
         # Ensure action bound is symmetric
@@ -43,8 +44,8 @@ class Agent(AbstractAgent):
         self.sess = tf.InteractiveSession()
 
         ### Randomly initialize critic network and actor with weights θQ and θμ
-        self.actor_network = Actor(self.sess, self.state_dim, self.action_dim)
-        self.critic_network = Critic(self.sess, self.state_dim, self.action_dim)
+        self.actor_network = Actor(self.sess, self.state_sensors_dim, self.state_vision_dim, self.action_dim)
+        self.critic_network = Critic(self.sess, self.state_sensors_dim, self.state_vision_dim, self.action_dim)
 
         ### Initialize replay buffer R
         self.replay_buffer = ReplayBuffer(self.REPLAY_BUFFER_SIZE)
@@ -52,11 +53,12 @@ class Agent(AbstractAgent):
         ### Initialize a random process for action exploration (Ornstein-Uhlenbeck process)
         self.OU = OU()
 
-    def act(self, s_t, is_training, epsilon ,done):
+    #TODO not adapted to vision!
+    def act(self, s_t_sens, s_t_vision, is_training, epsilon, done):
         ## create action based on observed state s_t
         #TODO not adapted to diffrent action dims!!!!
 
-        action = self.actor_network.action(s_t)
+        action = self.actor_network.action(s_t_sens, s_t_vision)
 
         if(is_training):
             # OU function(self, x, mu, theta, sigma)
@@ -76,6 +78,7 @@ class Agent(AbstractAgent):
     def train(self):
 
         ### Sample a random minibatch of N (BATCH_SIZE) transitions (s_i, a_i, r_i, s_i+1) from ReplayBuffer
+
         batch, batch_size = self.replay_buffer.getBatch(self.BATCH_SIZE) # returns batch_size since it can be smaller than self.BATCH_SIZE
         state_batch = np.asarray([data[0] for data in batch])
         action_batch = np.asarray([data[1] for data in batch])

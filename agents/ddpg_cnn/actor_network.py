@@ -14,22 +14,23 @@ BATH_SIZE = 32
 class Actor(object):
 
 
-    def __init__(self, session, state_dim, action_dim):
+    def __init__(self, session, state_sensors_dim, state_vision_dim, action_dim):
 
         self.session = session
-        self.state_dim = state_dim
+        self.state_sensors_dim = state_sensors_dim
+        self.state_vision_dim = state_vision_dim
         self.action_dim = action_dim
 
         ### create actor network μ with weights θμ
         self.state_input,\
         self.action_output,\
-        self.net = self.create_network(state_dim, action_dim)
+        self.net = self.create_network(state_sensors_dim, state_vision_dim, action_dim)
 
         ### Initialize target network μ′ with weights θμ′ ← θμ
         self.target_state_input,\
         self.target_action_output,\
         self.target_update,\
-        self.target_net = self.create_target_network(state_dim, action_dim, self.net)
+        self.target_net = self.create_target_network(state_sensors_dim, state_vision_dim, action_dim, self.net)
 
         # define training rules
         self.create_training_method()
@@ -42,21 +43,27 @@ class Actor(object):
         # self.load_network()
 
 
-    def create_network(self, state_dim, action_dim):
+    def create_network(self, state_sensors_dim, state_vision_dim, action_dim):
         layer1_size = LAYER1_SIZE
         layer2_size = LAYER2_SIZE
 
-        print("while creating actor, state_dim = " + str(state_dim))
+        print("while creating actor, state_sensors_dim = " + str(state_sensors_dim) + " and vision = " + str(state_vision_dim))
 
         #TODO not adapted to conv / image input
-
         # input
-        state_input = tf.placeholder("float", [None, state_dim])
+        state_sensors_input = tf.placeholder("float", [None, state_sensors_dim])
+        state_vision_input = tf.placeholder("float", [None, state_vision_dim])
 
-        W1_shape = [state_dim, layer1_size]
-        W1 = tf.Variable(tf.random_uniform(W1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="W1")
+        #TODO create conv layer 1
+        with tf.variable_scope('Conv1') as scope:
+            kernel = tf.variable(tf.truncated_normal(shape=[5,5,1,32], stddev=0.1, dtype=tf.float32)) #NOT DONE!!
+            
+
+        ## Sensor input layer 1
+        W1_shape = [state_sensors_dim, layer1_size]
+        W1 = tf.Variable(tf.random_uniform(W1_shape, -1 / math.sqrt(state_sensors_dim), 1 / math.sqrt(state_sensors_dim)), name="W1_sensorinput")
         b1_shape = [layer1_size]
-        b1 = tf.Variable(tf.random_uniform(b1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="b1")
+        b1 = tf.Variable(tf.random_uniform(b1_shape, -1 / math.sqrt(state_sensors_dim), 1 / math.sqrt(state_sensors_dim)), name="b1_sensorinput")
 
         W2_shape = [layer1_size, layer2_size]
         W2 = tf.Variable(tf.random_uniform(W2_shape, -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="W2")
@@ -66,6 +73,8 @@ class Actor(object):
         # W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3), name="W3")
         # b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3), name="b3")
 
+
+        ## output variables !!
         W_steer = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_steer")
         b_steer = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_steer")
 
@@ -75,7 +84,7 @@ class Actor(object):
         W_brake = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_brake")
         b_brake = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_brake")
 
-        layer1 = tf.nn.relu(tf.matmul(state_input, W1) + b1)
+        layer1 = tf.nn.relu(tf.matmul(state_sensors_input, W1) + b1)
         layer2 = tf.nn.relu(tf.matmul(layer1, W2) + b2)
 
         #print("steer= " + str(tf.matmul(layer2, W_steer)) + " b_steer= " + str(b_steer))
@@ -86,7 +95,7 @@ class Actor(object):
         # action_output = tf.concat(1, [steer, accel, brake])
         action_output = tf.concat([steer, accel, brake], 1)
 
-        return state_input, action_output, [W1, b1, W2, b2, W_steer, b_steer, W_accel, b_accel, W_brake, b_brake]
+        return state_sensors_input, action_output, [W1, b1, W2, b2, W_steer, b_steer, W_accel, b_accel, W_brake, b_brake]
 
     # TODO, could original "create_network" be used for both?
     def create_target_network(self, state_dim, action_dim, net):
@@ -122,26 +131,30 @@ class Actor(object):
     def update_target(self):
         self.session.run(self.target_update)
 
-    def train(self, q_gradient_batch, state_batch):
+    def train(self, q_gradient_batch, state_sens_batch, state_vision_batch):
         self.session.run(self.optimizer, feed_dict={
             self.q_gradient_input: q_gradient_batch,
-            self.state_input: state_batch
+            self.state_sens_input: state_sens_batch,
+            self.state_vision_input: state_vision_batch
         })
 
-    def actions(self, state_batch):
+    def actions(self, state_sens_batch,state_vision_batch):
         return self.session.run(self.action_output, feed_dict={
-            self.state_input: state_batch
+            self.state_sensors_input: [state_sens_batch],
+            self.state_vision_input: [state_vision_batch]
         })
 
-    def action(self, state):
+    def action(self, state_sens, state_vision):
         # print(str(state))
         return self.session.run(self.action_output, feed_dict={
-            self.state_input: [state]
+            self.state_sensors_input: [state_sens],
+            self.state_vision_input: [state_vision]
         })[0]
 
-    def target_actions(self, state_batch):
+    def target_actions(self, state_sens_batch, state_vision_batch):
         return self.session.run(self.target_action_output, feed_dict={
-            self.target_state_input: state_batch
+            self.target_state_sens_input: state_sens_batch,
+            self.target_state_vision_input: state_vision_batch
         })
 
     def print_settings(self, settings_file):
