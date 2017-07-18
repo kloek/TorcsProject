@@ -20,27 +20,23 @@ class Critic(object):
         self.state_dim = state_dim
         self.action_dim = action_dim
 
-
-        ### Initialize target network Q′ with weights θQ′ ← θQ
-        # create q network
+        ### create critic network Q with weights θQ
         self.state_input, \
         self.action_input, \
         self.q_value_output, \
-        self.net,\
-        self.is_training = self.create_q_network(state_dim, action_dim)
+        self.net = self.create_q_network(state_dim, action_dim)
 
-        # create target q network
+        ### Initialize target network Q′ with weights θQ′ ← θQ
         self.target_state_input, \
         self.target_action_input, \
         self.target_q_value_output, \
-        self.target_update,\
-        self.target_is_training = self.create_target_q_network(state_dim, action_dim, self.net)
+        self.target_update = self.create_target_q_network(state_dim, action_dim, self.net)
 
         # define training rules
         self.create_training_method()
 
         # initialization random weights, (Q′ with weights θQ′ ← θQ)
-        init = tf.global_variables_initializer()
+        init = tf.global_variables_initializer();
         self.session.run(init)
 
         self.update_target()
@@ -49,16 +45,8 @@ class Critic(object):
         # Define training optimizer
         self.y_input = tf.placeholder("float", [None, 1])
         weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
-        self.cost = tf.reduce_mean(tf.square(self.y_input - self.q_value_output)) #+ weight_decay
-        self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE)
-
-        self.parameters_gradients = self.optimizer.compute_gradients(self.cost)
-        for i, (grad,var) in enumerate(self.parameters_gradients):
-            if grad is not None:
-                self.parameters_gradients[i] = (tf.clip_by_norm(grad, 5.0),var)
-
-        self.train_op = self.optimizer.apply_gradients(self.parameters_gradients)
-
+        self.cost = tf.reduce_mean(tf.square(self.y_input - self.q_value_output)) + weight_decay
+        self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.cost)
         self.action_gradients = tf.gradients(self.q_value_output, self.action_input)
 
     def create_q_network(self, state_dim, action_dim):
@@ -68,10 +56,7 @@ class Critic(object):
 
         state_input = tf.placeholder("float", [None, state_dim])
         action_input = tf.placeholder("float", [None, action_dim])
-        is_training = tf.placeholder(tf.bool) # for BN
 
-        layer0_bn = self.batch_norm_layer(state_input, training_phase=is_training, scope_bn='q_batch_norm_0',
-                                          activation=tf.identity)
         W1_shape = [state_dim, layer1_size]
         W1 = tf.Variable(tf.random_uniform(W1_shape, -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="W1")
         b1_shape = [layer1_size]
@@ -87,73 +72,58 @@ class Critic(object):
         W3 = tf.Variable(tf.random_uniform([layer2_size, 1], -3e-3, 3e-3), name="W3")
         b3 = tf.Variable(tf.random_uniform([1], -3e-3, 3e-3), name="b3")
 
-        layer1 = tf.nn.relu(tf.matmul(layer0_bn, W1) + b1)
+
+        layer1 = tf.nn.relu(tf.matmul(state_input, W1) + b1)
         layer2 = tf.nn.relu(tf.matmul(layer1, W2) + tf.matmul(action_input, W2_action) + b2)
         q_value_output = tf.identity(tf.matmul(layer2, W3) + b3)
 
-        return state_input, action_input, q_value_output, [W1, b1, W2, W2_action, b2, W3, b3], is_training
+        return state_input, action_input, q_value_output, [W1, b1, W2, W2_action, b2, W3, b3]
 
     #TODO, could original "create_q_network" be used for both?
     def create_target_q_network(self, state_dim, action_dim, net):
         state_input = tf.placeholder("float", [None, state_dim])
         action_input = tf.placeholder("float", [None, action_dim])
-        is_training = tf.placeholder(tf.bool) # for BN
-
 
         ema = tf.train.ExponentialMovingAverage(decay=1 - TAU)
         target_update = ema.apply(net)
         target_net = [ema.average(x) for x in net]
 
-        layer0_bn = self.batch_norm_layer(state_input, training_phase=is_training, scope_bn='target_q_batch_norm_0',
-                                          activation=tf.identity)
+        layer1 = tf.nn.relu(tf.matmul(state_input, target_net[0]) + target_net[1])
+        layer2 = tf.nn.relu(tf.matmul(layer1, target_net[2]) + tf.matmul(action_input, target_net[3]) + target_net[4])
+        q_value_output = tf.identity(tf.matmul(layer2, target_net[5]) + target_net[6])
 
-        layer1 = tf.nn.relu(tf.matmul(layer0_bn,target_net[0]) + target_net[1])
-        layer2 = tf.nn.relu(tf.matmul(layer1,target_net[2]) + tf.matmul(action_input,target_net[3]) + target_net[4])
-        q_value_output = tf.identity(tf.matmul(layer2,target_net[5]) + target_net[6])
+        return state_input, action_input, q_value_output, target_update
 
-        return state_input,action_input,q_value_output,target_update,is_training
-
-
+    # TODO taken from ddgp torcs tensorflow... (all below!) check how they work!!!!!
     def update_target(self):
         self.session.run(self.target_update)
 
     def train(self, y_batch, state_batch, action_batch):
-        self.session.run(self.train_op, feed_dict={
+        self.time_step += 1
+        self.session.run(self.optimizer, feed_dict={
             self.y_input: y_batch,
             self.state_input: state_batch,
-            self.action_input: action_batch,
-            self.is_training: True
+            self.action_input: action_batch
         })
 
     def gradients(self, state_batch, action_batch):
         return self.session.run(self.action_gradients, feed_dict={
             self.state_input: state_batch,
-            self.action_input: action_batch,
-            self.is_training: False
+            self.action_input: action_batch
         })[0]
 
     def target_q(self, state_batch, action_batch):
         return self.session.run(self.target_q_value_output, feed_dict={
             self.target_state_input: state_batch,
-            self.target_action_input: action_batch,
-            self.target_is_training: False
+            self.target_action_input: action_batch
         })
 
     def q_value(self, state_batch, action_batch):
         return self.session.run(self.q_value_output, feed_dict={
             self.state_input: state_batch,
-            self.action_input: action_batch,
-            self.is_training: False
+            self.action_input: action_batch
         })
 
-    def batch_norm_layer(self,x,training_phase,scope_bn,activation=None):
-        return tf.cond(training_phase,
-        lambda: tf.contrib.layers.batch_norm(x, activation_fn=activation, center=True, scale=True,
-        updates_collections=None,is_training=True, reuse=None,scope=scope_bn,decay=0.9, epsilon=1e-5),
-        lambda: tf.contrib.layers.batch_norm(x, activation_fn =activation, center=True, scale=True,
-        updates_collections=None,is_training=False, reuse=True,scope=scope_bn,decay=0.9, epsilon=1e-5))
-
-    #TODO update when cnn is implemented!!!
     def print_settings(self, settings_file):
         settings_text = ["\n\n==== from critic network ====" + "\n",
                          "LAYER1_SIZE = " + str(LAYER1_SIZE) + "\n",
@@ -163,3 +133,15 @@ class Critic(object):
                          "L2 = " + str(L2) + "\n"]
         for line in settings_text:
             settings_file.write(line)  # print settings to file
+
+    def load_network(self):
+        checkpoint = tf.train.get_checkpoint_state("saved_critic_networks")
+        if checkpoint and checkpoint.model_checkpoint_path:
+            self.saver.restore(self.session, checkpoint.model_checkpoint_path)
+            print("Successfully loaded:" + str(checkpoint.model_checkpoint_path))
+        else:
+            print("Could not find old network weights")
+
+    def save_network(self, global_step, run_folder):
+        print('save acritic-network for global_step: ' + str(global_step))
+        self.saver.save(self.session, run_folder + '/saved_networks/' + 'critic-network', global_step=global_step)

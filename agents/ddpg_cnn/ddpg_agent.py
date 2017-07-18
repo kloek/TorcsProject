@@ -4,8 +4,8 @@ import numpy as np
 import tensorflow as tf
 
 from agents.abstract_agent import AbstractAgent
-from agents.ddpg_bn_cnn.actor_network import Actor
-from agents.ddpg_bn_cnn.critic_network import Critic
+from agents.ddpg_cnn.actor_network import Actor
+from agents.ddpg_cnn.critic_network import Critic
 
 from agents.parts.OU import OU
 from agents.parts.replay_buffer import ReplayBuffer
@@ -19,7 +19,7 @@ from agents.parts.replay_buffer import ReplayBuffer
 
 class Agent(AbstractAgent):
 
-    AGENT_NAME = "DDPG BN CNN"
+    AGENT_NAME = "DDPG CNN"
 
     # Hyper Parameters:
     REPLAY_BUFFER_SIZE = 100000
@@ -55,7 +55,6 @@ class Agent(AbstractAgent):
     def act(self, s_t, is_training, epsilon ,done):
         ## create action based on observed state s_t
         #TODO not adapted to diffrent action dims!!!!
-        # print("s_t = " + str(s_t))
 
         action = self.actor_network.action(s_t)
 
@@ -71,7 +70,7 @@ class Agent(AbstractAgent):
         action[0] = np.clip(action[0], -1, 1)
         action[1] = np.clip(action[1], 0, 1)
         action[2] = np.clip(action[2], 0, 1)
-        # print "Action:", action
+
         return action
 
     def train(self):
@@ -112,13 +111,24 @@ class Agent(AbstractAgent):
         return self.AGENT_NAME
 
     def print_settings(self, settings_file):
+        # 1. print settings of this agent
         settings_text = ["\n\n==== from agent ====" + "\n",
-                        "REPLAY_BUFFER_SIZE = " + str(self.REPLAY_BUFFER_SIZE) + "\n",
+                         "REPLAY_BUFFER_SIZE = " + str(self.REPLAY_BUFFER_SIZE) + "\n",
                          "REPLAY_START_SIZE = " + str(self.REPLAY_START_SIZE) + "\n",
                          "BATCH_SIZE = " + str(self.BATCH_SIZE) + "\n",
                          "GAMMA = " + str(self.GAMMA) + "\n"]
         for line in settings_text:
             settings_file.write(line)  # print settings to file
-
+        # 2. print settings of actor
         self.actor_network.print_settings(settings_file)
+
+        # 3. print settings of critic
         self.critic_network.print_settings(settings_file)
+
+    # TODO!!!!!!
+    def save_results(self):
+        print("")
+
+    def save_networks(self, global_step, run_folder):
+        self.actor_network.save_network(global_step=global_step, run_folder=run_folder)
+        self.critic_network.save_network(global_step=global_step, run_folder=run_folder)
