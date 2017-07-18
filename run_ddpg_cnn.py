@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from gym_torcs import TorcsEnv
-from agents.ddpg_original.ddpg_agent import Agent
+from agents.ddpg_cnn.ddpg_agent import Agent
 import numpy as np
 import random
 import math
@@ -22,10 +22,10 @@ import matplotlib.pyplot as plt
 class agent_runner(object):
 
     is_training = True  # TODO sys arg or config file
-    test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
-    epsilon_start = 0.95  # TODO sys arg or config file
+    test_frequency = 5 # TODO sys arg or config file # how often to test /episodes
+    epsilon_start = 0.9  # TODO sys arg or config file
     episode_count = 10000  # TODO sys arg or config file
-    max_steps = 1000  # TODO sys arg or config file
+    max_steps = 100  # TODO sys arg or config file
 
     # initial values
     reward = 0
@@ -42,7 +42,7 @@ class agent_runner(object):
     gear_change = False
 
     # env and agent
-    state_dim = 89  # TODO
+    state_dim = 68  # TODO
     action_dim = 3
 
     env = None
@@ -97,8 +97,8 @@ class agent_runner(object):
             total_reward = 0.
             save_nets = False
 
-            # train_indicator is equal to is_training but set to false when testing every 20th episode!
-            #train_indicator = (self.is_training and not((episode > 10) and (episode % 20 == 0)))
+            # train_indicator is equal to is_training but set to false when testing every xth episode!
+            # train_indicator = (self.is_training and not((episode > 10) and (episode % 20 == 0)))
             train_indicator = (self.is_training and not ((not episode == 0) and (episode % self.test_frequency == 0)))
 
             ### Initialize a random process N for action exploration
@@ -110,7 +110,7 @@ class agent_runner(object):
             ### Receive initial observation state s_t
             # relaunch TORCS every 5 episode because of the memory leak error
             ob = self.env.reset(relaunch=((episode % 5) == 0))
-            s_t = self.create_state(ob)
+            s_t_sens, s_t_vision = self.create_state(ob)
 
 
             ### for t = 1, T
@@ -119,9 +119,7 @@ class agent_runner(object):
 
                 ### Execute action at and observe reward rt and observe new state st+1
                 # 1. get that action (is_training=true gives noisy action!!)
-                self.epsilon -= 1.0 / 100000 #TODO replace with var and add to settings!!!
-                self.epsilon = max(self.epsilon, 0.1)
-                a_t = self.agent.act(s_t=s_t, is_training=train_indicator, epsilon=self.epsilon, done=done)
+                a_t = self.agent.act(s_t_sens=s_t_sens,s_t_vision=s_t_vision, is_training=train_indicator, epsilon=self.epsilon, done=done)
 
                 # 2. send that action to the environment and observe rt and new state
                 ob, r_t, done, info = self.env.step(a_t)
@@ -129,7 +127,8 @@ class agent_runner(object):
 
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
-                self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, int(done))
+                self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, done)
+
                 total_reward += r_t
                 s_t = s_t1
 
@@ -180,7 +179,7 @@ class agent_runner(object):
 
 
     def create_state(self, ob):
-        # TODO this is without vision!!!!!
+        # Available sensors
         """names = ['angle',
              'curLapTime',
              'damage',
@@ -201,15 +200,12 @@ class agent_runner(object):
              'wheelSpinVel',
              'z']"""
 
-        # print("observation=" + str(ob))
         # some numbers are scaled, se scale_observation(..) in gym_torcs
-        #original sensors!!!
         #s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
-        # realistic sensors!!
-        #s_t = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
-        # combo! for driving without vision, but close to realistic!
-        s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
-        return s_t
+        s_t_sens = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        s_t_vision = ob['img']
+
+        return s_t_sens, s_t_vision
 
     def do_early_stop(epsilon, train_indicator):
         random_number = random.random()
