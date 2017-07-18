@@ -22,10 +22,10 @@ import matplotlib.pyplot as plt
 class agent_runner(object):
 
     is_training = True  # TODO sys arg or config file
-    test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
+    test_frequency = 3 # TODO sys arg or config file # how often to test /episodes
     epsilon_start = 0.95  # TODO sys arg or config file
     episode_count = 10000  # TODO sys arg or config file
-    max_steps = 1000  # TODO sys arg or config file
+    max_steps = 100  # TODO sys arg or config file
 
     # initial values
     reward = 0
@@ -130,6 +130,14 @@ class agent_runner(object):
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
                 self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, int(done))
+
+                # Cheking for nan rewards
+                if (math.isnan(r_t)):
+                    r_t = 0.0
+                    for bad_r in range(50):
+                        print('Bad Reward Found')
+
+
                 total_reward += r_t
                 s_t = s_t1
 
@@ -152,12 +160,11 @@ class agent_runner(object):
 
                 # so that this loop stops if torcs is restarting or done!
                 if done:
-                    print("episode is done")
+                    #print("episode is done")
                     if(not train_indicator):
-                        print("this is testing round so saving results")
+                        print("saving results from testing round!")
                         self.result.save(episode=episode)
                         if(save_nets):  # save best network!
-                            print("saving nets since they performed better")
                             self.agent.save_networks(global_step=self.total_steps,run_folder=self.folder_name)
                     break
             ### end for

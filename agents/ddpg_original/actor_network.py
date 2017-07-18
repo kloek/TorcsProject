@@ -38,6 +38,7 @@ class Actor(object):
         init = tf.global_variables_initializer()
         self.session.run(init)
 
+        self.saver = tf.train.Saver()
         self.update_target()
         # self.load_network()
 
