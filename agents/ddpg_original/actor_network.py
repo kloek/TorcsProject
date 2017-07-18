@@ -20,13 +20,12 @@ class Actor(object):
         self.state_dim = state_dim
         self.action_dim = action_dim
 
-        ### Initialize target network μ′ with weights θμ′ ← θμ
-        # create actor network
+        ### create actor network μ with weights θμ
         self.state_input,\
         self.action_output,\
         self.net = self.create_network(state_dim, action_dim)
 
-        # create target actor network
+        ### Initialize target network μ′ with weights θμ′ ← θμ
         self.target_state_input,\
         self.target_action_output,\
         self.target_update,\
@@ -158,19 +157,17 @@ class Actor(object):
     """def variable(self,shape,f):
         return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))"""
 
-    # TODO create separate network functions (object) that works for Q, Q', u, and u'
-    # TODO and then include these saving and loading functions there!
-    '''
+    # TODO include these saving and loading functions there!
+
+    # TODO this method isnt correct based on my implementation
     def load_network(self):
-        self.saver = tf.train.Saver()
         checkpoint = tf.train.get_checkpoint_state("saved_actor_networks")
         if checkpoint and checkpoint.model_checkpoint_path:
-            self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
-            print "Successfully loaded:", checkpoint.model_checkpoint_path
+            self.saver.restore(self.session, checkpoint.model_checkpoint_path)
+            print("Successfully loaded:" + str(checkpoint.model_checkpoint_path))
         else:
-            print "Could not find old network weights"
+            print("Could not find old network weights")
 
-    def save_network(self,time_step):
-        print 'save actor-network...',time_step
-        self.saver.save(self.sess, 'saved_actor_networks/' + 'actor-network', global_step = time_step)
-    '''
+    def save_network(self, global_step, run_folder):
+        print('save actor-network for global_step: ' + str(global_step))
+        self.saver.save(self.session, run_folder + '/saved_networks/' + 'actor-network', global_step=global_step)

@@ -20,15 +20,13 @@ class Critic(object):
         self.state_dim = state_dim
         self.action_dim = action_dim
 
-
-        ### Initialize target network Q′ with weights θQ′ ← θQ
-        # create q network
+        ### create critic network Q with weights θQ
         self.state_input, \
         self.action_input, \
         self.q_value_output, \
         self.net = self.create_q_network(state_dim, action_dim)
 
-        # create target q network
+        ### Initialize target network Q′ with weights θQ′ ← θQ
         self.target_state_input, \
         self.target_action_input, \
         self.target_q_value_output, \
@@ -135,3 +133,15 @@ class Critic(object):
                          "L2 = " + str(L2) + "\n"]
         for line in settings_text:
             settings_file.write(line)  # print settings to file
+
+    def load_network(self):
+        checkpoint = tf.train.get_checkpoint_state("saved_critic_networks")
+        if checkpoint and checkpoint.model_checkpoint_path:
+            self.saver.restore(self.session, checkpoint.model_checkpoint_path)
+            print("Successfully loaded:" + str(checkpoint.model_checkpoint_path))
+        else:
+            print("Could not find old network weights")
+
+    def save_network(self, global_step, run_folder):
+        print('save acritic-network for global_step: ' + str(global_step))
+        self.saver.save(self.session, run_folder + '/saved_networks/' + 'critic-network', global_step=global_step)

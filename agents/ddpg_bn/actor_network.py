@@ -20,15 +20,13 @@ class Actor(object):
         self.state_dim = state_dim
         self.action_dim = action_dim
 
-        # create actor network
-
+        ### create actor network μ with weights θμ
         self.state_input,\
         self.action_output,\
         self.net,\
         self.is_training = self.create_network(state_dim, action_dim)
 
         ### Initialize target network μ′ with weights θμ′ ← θμ
-        # create target actor network
         self.target_state_input,\
         self.target_action_output,\
         self.target_update,\

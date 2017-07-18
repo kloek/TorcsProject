@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from gym_torcs import TorcsEnv
-from agents.ddpg_bn.ddpg_agent import Agent
+from agents.ddpg_original.ddpg_agent import Agent
 import numpy as np
 import random
 import math

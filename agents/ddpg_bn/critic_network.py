@@ -20,16 +20,14 @@ class Critic(object):
         self.state_dim = state_dim
         self.action_dim = action_dim
 
-
-        ### Initialize target network Q′ with weights θQ′ ← θQ
-        # create q network
+        ### create critic network Q with weights θQ
         self.state_input, \
         self.action_input, \
         self.q_value_output, \
         self.net,\
         self.is_training = self.create_q_network(state_dim, action_dim)
 
-        # create target q network
+        ### Initialize target network Q′ with weights θQ′ ← θQ
         self.target_state_input, \
         self.target_action_input, \
         self.target_q_value_output, \
