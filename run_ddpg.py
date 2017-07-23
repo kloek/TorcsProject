@@ -8,6 +8,9 @@ import math
 import os
 import datetime
 
+import gc
+gc.enable()
+
 from agents.parts.results import results
 
 #test
@@ -22,14 +25,15 @@ import matplotlib.pyplot as plt
 class agent_runner(object):
 
     is_training = True  # TODO sys arg or config file
-    test_frequency = 3 # TODO sys arg or config file # how often to test /episodes
-    epsilon_start = 0.95  # TODO sys arg or config file
-    episode_count = 10000  # TODO sys arg or config file
-    max_steps = 100  # TODO sys arg or config file
+    test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
+    epsilon_start = 1  # TODO sys arg or config file
+    episode_count = 5000  # TODO sys arg or config file
+    max_steps = 1000  # TODO sys arg or config file
+    EXPLORE = 300000.0
 
     # initial values
     reward = 0
-    best_total_reward = 0  # best reward over all episodes and steps
+    best_total_reward = -100000  # best reward over all episodes and steps
 
     total_steps = 0 # total nr of steps over all episodes
     start_time = None
@@ -37,12 +41,13 @@ class agent_runner(object):
     epsilon = epsilon_start
 
     # Gym_torcs
-    vision = True # has to be true since this implementation is with vision/cnns
+    vision = True
     throttle = True
-    gear_change = False
+    gear_change = False # automatic
 
     # env and agent
-    state_dim = 89  # TODO
+    #state_dim = 89  # TODO
+    state_dim = 29
     action_dim = 3
 
     env = None
@@ -117,10 +122,13 @@ class agent_runner(object):
             for step in range(self.max_steps):
                 self.total_steps += 1
 
+                # reduce epsilon
+                if (train_indicator):
+                    self.epsilon -= 1.0 / self.EXPLORE
+                    self.epsilon = max(self.epsilon, 0.1)
+
                 ### Execute action at and observe reward rt and observe new state st+1
-                # 1. get that action (is_training=true gives noisy action!!)
-                self.epsilon -= 1.0 / 100000 #TODO replace with var and add to settings!!!
-                self.epsilon = max(self.epsilon, 0.1)
+                # 1. get that action (is_training=true gives noisy action!! / exploration)
                 a_t = self.agent.act(s_t=s_t, is_training=train_indicator, epsilon=self.epsilon, done=done)
 
                 # 2. send that action to the environment and observe rt and new state
@@ -134,8 +142,7 @@ class agent_runner(object):
                 # Cheking for nan rewards
                 if (math.isnan(r_t)):
                     r_t = 0.0
-                    for bad_r in range(50):
-                        print('Bad Reward Found')
+                    print('NAN reward <===========================================================================')
 
 
                 total_reward += r_t
@@ -144,31 +151,31 @@ class agent_runner(object):
                 ### training (includes 5 steps from ddpg algo):
                 if(train_indicator):
                     self.agent.train()
-                    if((step % 5) == 0):
-                        print("Training: ep="+str(episode) +" total_steps="+str(self.total_steps)+", a_t=" + str(a_t))
                 else:
-                    # Time to actually test this badboy!!
-                    if ((step % 5) == 0):
-                        print("Testing: ep="+str(episode) + " total_steps="+str(self.total_steps)+", a_t=" + str(a_t) + ", r_t=" + str(r_t) + "/"+ str(total_reward) +"/" + str(self.best_total_reward))
-                    if(total_reward > self.best_total_reward):
-                        self.best_total_reward = total_reward # update best reward
-                        save_nets = True
-
                     # add result to result saver! when testing
-                    self.result.add(row=[episode,self.total_steps,self.best_total_reward,total_reward,r_t,self.epsilon])
-                    #self.result.save(episode=episode)
+                    self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, r_t, self.epsilon])
+
+                # print info:
+                if ((step % 10) == 0):
+                    print("Episode: " + str(episode) + " total_steps=" + str(self.total_steps) + ", a_t=" + str(
+                        a_t) + ", Reward=" + str(total_reward) + "/" + str(self.best_total_reward) + ", epsilon= " + str(self.epsilon))
 
                 # so that this loop stops if torcs is restarting or done!
                 if done:
-                    #print("episode is done")
-                    if(not train_indicator):
-                        print("saving results from testing round!")
-                        self.result.save(episode=episode)
-                        if(save_nets):  # save best network!
-                            self.agent.save_networks(global_step=self.total_steps,run_folder=self.folder_name)
                     break
-            ### end for
-        ### end for
+
+            ### end for (en of episode)
+            if(train_indicator):
+                if (total_reward > self.best_total_reward):
+                    print("Now we save model with reward " + str(total_reward) + " previous best reward was " + str(
+                        self.best_total_reward))
+                    self.best_total_reward = total_reward
+                    self.agent.save_networks(global_step=self.total_steps, run_folder=self.folder_name)
+            else:
+                print("saving results from testing round!")
+                self.result.save(episode=episode)
+
+        ### end for end of all episodes!
 
         self.finish()
 
@@ -211,11 +218,11 @@ class agent_runner(object):
         # print("observation=" + str(ob))
         # some numbers are scaled, se scale_observation(..) in gym_torcs
         #original sensors!!!
-        #s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
         # realistic sensors!!
         #s_t = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
         # combo! for driving without vision, but close to realistic!
-        s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        #s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
         return s_t
 
     def do_early_stop(epsilon, train_indicator):
