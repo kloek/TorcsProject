@@ -89,6 +89,8 @@ class agent_runner(object):
         self.print_settings(settings_file=self.settings_file)  # print settings from runfile
         self.agent.print_settings(settings_file=self.settings_file)  # print settings from agent
 
+        self.settings_file.close()
+
         self.result = results(folder=self.folder_name)
 
 
@@ -152,8 +154,8 @@ class agent_runner(object):
                 if(train_indicator):
                     self.agent.train()
                 else:
-                    # add result to result saver! when testing
-                    self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, r_t, self.epsilon])
+                    # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
+                    self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, r_t, self.epsilon, a_t[0], a_t[1], a_t[2]])
 
                 # print info:
                 if ((step % 10) == 0):

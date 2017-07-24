@@ -119,6 +119,7 @@ class Agent(AbstractAgent):
                          "GAMMA = " + str(self.GAMMA) + "\n"]
         for line in settings_text:
             settings_file.write(line)  # print settings to file
+
         # 2. print settings of actor
         self.actor_network.print_settings(settings_file)
 
