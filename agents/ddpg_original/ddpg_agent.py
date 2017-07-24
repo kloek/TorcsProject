@@ -33,10 +33,11 @@ class Agent(AbstractAgent):
     OU = None
 
     #Construct ddpg agent
-    def __init__(self, state_dim, action_dim):
+    def __init__(self,env_name, state_dim, action_dim):
         self.state_dim = state_dim  # dimention of states e.g vision size and other sensors!
         self.action_dim = action_dim  # dimention of action e.g 3 for steering, throttle, and break
 
+        self.env_name = env_name
 
         # Ensure action bound is symmetric
         self.time_step = 0
@@ -51,6 +52,15 @@ class Agent(AbstractAgent):
 
         ### Initialize a random process for action exploration (Ornstein-Uhlenbeck process)
         self.OU = OU()
+
+        # loading networks
+        self.saver = tf.train.Saver()
+        checkpoint = tf.train.get_checkpoint_state("saved_networks/")
+        if checkpoint and checkpoint.model_checkpoint_path:
+            self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
+            print("Successfully loaded:", checkpoint.model_checkpoint_path)
+        else:
+            print("Could not find old network weights")
 
     def act(self, s_t, is_training, epsilon ,done):
         ## create action based on observed state s_t
@@ -131,5 +141,6 @@ class Agent(AbstractAgent):
         print("")
 
     def save_networks(self, global_step, run_folder):
-        self.actor_network.save_network(global_step=global_step, run_folder=run_folder)
-        self.critic_network.save_network(global_step=global_step, run_folder=run_folder)
+        self.saver.save(self.sess, run_folder+'/saved_networks/' + self.env_name + 'network' + '-ddpg', global_step=global_step)
+        #self.actor_network.save_network(global_step=global_step, run_folder=run_folder)
+        #self.critic_network.save_network(global_step=global_step, run_folder=run_folder)

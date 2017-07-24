@@ -74,7 +74,7 @@ class agent_runner(object):
         #print("sample does work")
         #print("action_dim=" + str(action_dim) + ",  state_dim=" + str(state_dim))
 
-        self.agent = Agent(state_dim=self.state_dim, action_dim=self.action_dim)
+        self.agent = Agent(env_name="TORCS", state_dim=self.state_dim, action_dim=self.action_dim)
         print("2. Agent is created!")
 
         # create a folder in runs for saving info about the run, result, and trained nets!!
@@ -168,11 +168,12 @@ class agent_runner(object):
 
             ### end for (en of episode)
             if(train_indicator):
+                #print("THIS IF SHOULD BE ACCESSED 19/20 TIMES")
                 if (total_reward > self.best_total_reward):
-                    print("Now we save model with reward " + str(total_reward) + " previous best reward was " + str(
-                        self.best_total_reward))
+                    print("Now we save model with reward " + str(total_reward) + " previous best reward was " + str(self.best_total_reward))
                     self.best_total_reward = total_reward
                     self.agent.save_networks(global_step=self.total_steps, run_folder=self.folder_name)
+                    #self.agent.save_networks(global_step=self.total_steps, run_folder=self.folder_name)
             else:
                 print("saving results from testing round!")
                 self.result.save(episode=episode)

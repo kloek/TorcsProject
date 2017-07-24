@@ -158,9 +158,8 @@ class Actor(object):
     """def variable(self,shape,f):
         return tf.Variable(tf.random_uniform(shape,-1/math.sqrt(f),1/math.sqrt(f)))"""
 
-    # TODO include these saving and loading functions there!
 
-    # TODO this method isnt correct based on my implementation
+    """# TODO this method isnt correct based on my implementation
     def load_network(self):
         checkpoint = tf.train.get_checkpoint_state("saved_actor_networks")
         if checkpoint and checkpoint.model_checkpoint_path:
@@ -171,4 +170,4 @@ class Actor(object):
 
     def save_network(self, global_step, run_folder):
         print('save actor-network for global_step: ' + str(global_step))
-        self.saver.save(self.session, run_folder + '/saved_networks/' + 'actor-network', global_step=global_step)
+        self.saver.save(self.session, run_folder + '/saved_networks/' + 'actor-network', global_step=global_step)"""
