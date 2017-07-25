@@ -112,7 +112,7 @@ class agent_runner(object):
             #Done in ddpg_agent constructor... OU
 
             #TODO Early stop? - train indicator is not is_training, but wheter a test run is active or not!
-            #early_stop = do_early_stop(epsilon, train_indicator)
+            early_stop = self.do_early_stop(epsilon=self.epsilon, train_indicator=train_indicator)
 
             ### Receive initial observation state s_t
             # relaunch TORCS every 5 episode because of the memory leak error
@@ -134,12 +134,8 @@ class agent_runner(object):
                 a_t = self.agent.act(s_t=s_t, is_training=train_indicator, epsilon=self.epsilon, done=done)
 
                 # 2. send that action to the environment and observe rt and new state
-                ob, r_t, done, info = self.env.step(a_t)
+                ob, r_t, done, info = self.env.step(a_t, early_stop)
                 s_t1 = self.create_state(ob) # next state, after action a_t
-
-
-                ### Store transition (st,at,rt,st+1) in ReplayBuffer
-                self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, int(done))
 
                 # Cheking for nan rewards
                 if (math.isnan(r_t)):
@@ -147,15 +143,19 @@ class agent_runner(object):
                     print('NAN reward <===========================================================================')
 
 
+                ### Store transition (st,at,rt,st+1) in ReplayBuffer
+                self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, done)
+
+
                 total_reward += r_t
                 s_t = s_t1
 
                 ### training (includes 5 steps from ddpg algo):
-                if(train_indicator):
+                if(train_indicator and self.agent.replay_buffer.count() > self.agent.REPLAY_START_SIZE):
                     self.agent.train()
                 else:
                     # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
-                    self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, r_t, self.epsilon, a_t[0], a_t[1], a_t[2]])
+                    self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, r_t, self.epsilon])
 
                 # print info:
                 if ((step % 10) == 0):
@@ -228,7 +228,7 @@ class agent_runner(object):
         #s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
         return s_t
 
-    def do_early_stop(epsilon, train_indicator):
+    def do_early_stop(self, epsilon, train_indicator):
         random_number = random.random()
         eps_early = max(epsilon, 0.10)
         return (random_number < (1.0 - eps_early)) and (train_indicator == 1)

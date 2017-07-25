@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # episode, total_steps, best_total_reward, total_reward, r_t, epsilon
 # script assumes you now what you are doing, not much error checking!!!!
-COL_NAMES = ["episode", "total_steps", "best_total_reward", "total_reward", "r_t", "epsilon", "steer", "accel", "brake"]
+COL_NAMES = ["episode", "total_steps", "best_total_reward", "total_reward", "r_t", "epsilon"]
 
 #y_col = None
 #x_col = None

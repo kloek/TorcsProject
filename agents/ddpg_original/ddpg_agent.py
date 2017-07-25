@@ -86,34 +86,39 @@ class Agent(AbstractAgent):
     def train(self):
 
         ### Sample a random minibatch of N (BATCH_SIZE) transitions (s_i, a_i, r_i, s_i+1) from ReplayBuffer
-        batch, batch_size = self.replay_buffer.getBatch(self.BATCH_SIZE) # returns batch_size since it can be smaller than self.BATCH_SIZE
-        state_batch = np.asarray([data[0] for data in batch])
-        action_batch = np.asarray([data[1] for data in batch])
-        reward_batch = np.asarray([data[2] for data in batch])
-        next_state_batch = np.asarray([data[3] for data in batch])
-        done_batch = np.asarray([data[4] for data in batch])
+        # print "train step",self.time_step
+        # Sample a random minibatch of N transitions from replay buffer
+        minibatch = self.replay_buffer.getBatch(self.BATCH_SIZE)
+        state_batch = np.asarray([data[0] for data in minibatch])
+        action_batch = np.asarray([data[1] for data in minibatch])
+        reward_batch = np.asarray([data[2] for data in minibatch])
+        next_state_batch = np.asarray([data[3] for data in minibatch])
+        done_batch = np.asarray([data[4] for data in minibatch])
 
-        ### Set yi = ri + γQ′(si+1,μ′(si+1|θμ′)|θQ′)
+        # for action_dim = 1
+        action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
+
+        # Calculate y_batch
+
         next_action_batch = self.actor_network.target_actions(next_state_batch)
         q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
         y_batch = []
-        for i in range(batch_size):
+        for i in range(len(minibatch)):
             if done_batch[i]:
                 y_batch.append(reward_batch[i])
             else:
                 y_batch.append(reward_batch[i] + self.GAMMA * q_value_batch[i])
-
-        y_batch = np.resize(y_batch, [batch_size, 1])
-
-        ### Update critic by minimizing the loss:
+        y_batch = np.resize(y_batch, [self.BATCH_SIZE, 1])
+        # Update critic by minimizing the loss L
         self.critic_network.train(y_batch, state_batch, action_batch)
 
-        ### Update the actor policy using the sampled policy gradient:
+        # Update the actor policy using the sampled gradient:
         action_batch_for_gradients = self.actor_network.actions(state_batch)
         q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
+
         self.actor_network.train(q_gradient_batch, state_batch)
 
-        ### Update the target networks:
+        # Update the target networks
         self.actor_network.update_target()
         self.critic_network.update_target()
 
