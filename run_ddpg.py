@@ -107,6 +107,7 @@ class agent_runner(object):
             # train_indicator is equal to is_training but set to false when testing every 20th episode!
             #train_indicator = (self.is_training and not((episode > 10) and (episode % 20 == 0)))
             train_indicator = (self.is_training and not ((not episode == 0) and (episode % self.test_frequency == 0)))
+            #train_indicator = (self.is_training and not episode % self.test_frequency == 0) # testing at ep=0, sets base reward!!
 
             ### Initialize a random process N for action exploration
             #Done in ddpg_agent constructor... OU
@@ -154,13 +155,10 @@ class agent_runner(object):
                 if(train_indicator and self.agent.replay_buffer.count() > self.agent.REPLAY_START_SIZE):
                     self.total_training += 1
                     self.agent.train()
-                else:
-                    # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
-                    self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, r_t, self.epsilon])
 
                 # print info:
                 if ((step % 10) == 0):
-                    print("Episode: " + str(episode) + " total_steps=" + str(self.total_steps) + ", a_t=" + str(
+                    print("Ep:" + str(episode) + " step:" + str(step) +"("+str(self.total_steps)+")" + ", a_t=" + str(
                         a_t) + ", Reward=" + str(total_reward) + "/" + str(self.best_total_reward) + ", epsilon= " + str(self.epsilon))
 
                 # so that this loop stops if torcs is restarting or done!
@@ -174,10 +172,12 @@ class agent_runner(object):
                     print("Now we save model with reward " + str(total_reward) + " previous best reward was " + str(self.best_total_reward))
                     self.best_total_reward = total_reward
                     self.agent.save_networks(global_step=self.total_steps, run_folder=self.folder_name)
-                    #self.agent.save_networks(global_step=self.total_steps, run_folder=self.folder_name)
             else:
-                print("saving results from testing round!")
-                self.result.save(episode=episode)
+                if(self.best_total_reward > -100000):
+                    print("saving results from testing round!")
+                    # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
+                    self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, self.epsilon])
+                    self.result.save()
 
         ### end for end of all episodes!
 

@@ -24,10 +24,10 @@ class results(object):
             raise IndexError"""
 
 
-    def save(self,episode):
+    def save(self):
         #res = np.reshape(self.data, newshape=(int(len(self.data)/self.row_size) , self.row_size))
         res = np.asanyarray(self.data)
-        self.latest_file = str(self.folder) + "/" + "result_at_ep-"+str(episode)+".npy"
+        self.latest_file = str(self.folder) + "/" + "result.npy"
         np.save(file=self.latest_file, arr=res)
         return self.latest_file;
 
