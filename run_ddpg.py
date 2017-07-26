@@ -32,7 +32,6 @@ class agent_runner(object):
     EXPLORE = 300000.0
 
     # initial values
-    reward = 0
     best_total_reward = -100000  # best reward over all episodes and steps
 
     total_steps = 0 # total nr of steps over all episodes
@@ -57,6 +56,8 @@ class agent_runner(object):
     folder_name = None
     settings_file = None
     result = None
+
+    total_training = 0
 
     def __init__(self):
         # Generate a Torcs environment
@@ -102,7 +103,6 @@ class agent_runner(object):
             print(" starting episode: " + str(episode) +"/"+ str(self.episode_count))
             done = self.done
             total_reward = 0.
-            save_nets = False
 
             # train_indicator is equal to is_training but set to false when testing every 20th episode!
             #train_indicator = (self.is_training and not((episode > 10) and (episode % 20 == 0)))
@@ -152,6 +152,7 @@ class agent_runner(object):
 
                 ### training (includes 5 steps from ddpg algo):
                 if(train_indicator and self.agent.replay_buffer.count() > self.agent.REPLAY_START_SIZE):
+                    self.total_training += 1
                     self.agent.train()
                 else:
                     # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!

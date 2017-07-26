@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from collections import deque
-import random
-import numpy as np
-
-
-##TODO THIS CLASS IS TAKEN "AS IS" FROM DDPG_Torcs_Tensorflow
-# might not perfectly fit my implementation......
-#TODO selects obeservations randomly, doesnt work for lstms since they need a sequence!
-#TODO does not implement Prioritised Experience Replay!
-
 from collections import deque
 import random
 
@@ -22,10 +10,6 @@ class ReplayBuffer(object):
         self.mean_reward = 0.0
 
     def getBatch(self, batch_size):
-        # Randomly sample batch_size examples
-        #size = min(batch_size, self.num_experiences)
-        #return random.sample(self.buffer,size), size
-
         # Randomly sample batch_size examples
         if self.num_experiences < batch_size:
             return random.sample(self.buffer, self.num_experiences)
@@ -52,6 +36,8 @@ class ReplayBuffer(object):
         return self.num_experiences
 
     def getMeanReward(self):
+        # if buffer is full, return buffer size
+        # otherwise, return experience counter
         return self.mean_reward
 
     def erase(self):

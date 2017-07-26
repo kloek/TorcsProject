@@ -141,10 +141,6 @@ class Agent(AbstractAgent):
         # 3. print settings of critic
         self.critic_network.print_settings(settings_file)
 
-    # TODO!!!!!!
-    def save_results(self):
-        print("")
-
     def save_networks(self, global_step, run_folder):
         self.saver.save(self.sess, run_folder+'/saved_networks/' + self.env_name + 'network' + '-ddpg', global_step=global_step)
         #self.actor_network.save_network(global_step=global_step, run_folder=run_folder)
