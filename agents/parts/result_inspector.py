@@ -14,7 +14,7 @@ COL_NAMES = ["episode", "total_steps", "best_total_reward", "total_reward", "r_t
 
 # subrutine to main, of for automaticly creating plots
 def create_plot(npy_filename, y_col, x_col, title, remove_first=False):
-    print("selected file is = " + str(npy_filename))
+    print("selected file is = " + str(npy_filename) + "with y_col=" + str(y_col) + " and x_col=" + str(x_col) + ", remove first="+ str(remove_first))
 
     #TODO if file is npy ...
     data = np.load(file=npy_filename)
