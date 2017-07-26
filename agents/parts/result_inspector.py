@@ -13,11 +13,14 @@ COL_NAMES = ["episode", "total_steps", "best_total_reward", "total_reward", "r_t
 
 
 # subrutine to main, of for automaticly creating plots
-def create_plot(npy_filename,y_col,x_col, title):
+def create_plot(npy_filename, y_col, x_col, title, remove_first=False):
     print("selected file is = " + str(npy_filename))
 
     #TODO if file is npy ...
     data = np.load(file=npy_filename)
+
+    if(remove_first): #removes first line in data since it is start values, and not results!
+        data = np.delete(data, (0), axis=0)
 
     print("data.shape= " + str(data.shape))
     #print("data= " + str(data))
@@ -39,7 +42,7 @@ def create_plot(npy_filename,y_col,x_col, title):
 
 # for manually creating plots....
 if __name__ == "__main__":
-
+    remove_first=False
     # open a file dialog to pick file!!!
     root = tk.Tk()
     root.withdraw()
@@ -55,4 +58,7 @@ if __name__ == "__main__":
         # generate a title
         title = "PLOT_y" + str(y_col) + "_x" + str(x_col)
 
-    create_plot(npy_filename=filename, y_col=y_col, x_col=x_col, title=title)
+    if(y_col == 2):
+        remove_first=True
+
+    create_plot(npy_filename=filename, y_col=y_col, x_col=x_col, title=title, remove_first=remove_first)
