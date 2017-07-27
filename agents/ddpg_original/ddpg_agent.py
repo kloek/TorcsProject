@@ -53,7 +53,7 @@ class Agent(AbstractAgent):
         ### Initialize a random process for action exploration (Ornstein-Uhlenbeck process)
         self.OU = OU()
 
-        # loading networks
+        # loading networks #TODO, this is not adapted to my code!!!
         self.saver = tf.train.Saver()
         checkpoint = tf.train.get_checkpoint_state("saved_networks/")
         if checkpoint and checkpoint.model_checkpoint_path:

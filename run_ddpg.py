@@ -40,7 +40,7 @@ class agent_runner(object):
     epsilon = epsilon_start
 
     # Gym_torcs
-    vision = True
+    vision = False
     throttle = True
     gear_change = False # automatic
 
@@ -60,23 +60,14 @@ class agent_runner(object):
     total_training = 0
 
     def __init__(self):
+
         # Generate a Torcs environment
         self.env = TorcsEnv(vision=self.vision, throttle=self.throttle, gear_change=self.gear_change)
-        print("1. Env is created!")
+        print("1. Env is created! with: vision="+str(self.vision) + ", throttle=" + str(self.throttle) +", gear_change=" + str(self.gear_change))
 
-        #TODO ALL THIS IS EXPERIMENTAL!!!!!
-        #TODO, why is action state size two when it should be 3?
-        #TODO, use this to set action_dim and state_dim
-        #action_dim_test = env.action_space.sample().shape
-        #print("action_dim_test = " + str(action_dim_test))
-        #state_dim_test = env.observation_space.sample().shape
-        #s_t = env.observation_space.sample()
-        #print("State dim_test" + str(state_dim_test.shape))
-        #print("sample does work")
-        #print("action_dim=" + str(action_dim) + ",  state_dim=" + str(state_dim))
-
+        # Create agent
         self.agent = Agent(env_name="TORCS", state_dim=self.state_dim, action_dim=self.action_dim)
-        print("2. Agent is created!")
+        print("2. Agent is created! with state_dim=" + str(self.state_dim) + ", action_dim=" + str(self.action_dim))
 
         # create a folder in runs for saving info about the run, result, and trained nets!!
         self.start_time = datetime.datetime.now()
@@ -157,9 +148,8 @@ class agent_runner(object):
                     self.agent.train()
 
                 # print info:
-                if ((step % 10) == 0):
-                    print("Ep:" + str(episode) + " step:" + str(step) +"("+str(self.total_steps)+")" + ", a_t=" + str(
-                        a_t) + ", Reward=" + str(total_reward) + "/" + str(self.best_total_reward) + ", epsilon= " + str(self.epsilon))
+                if ((step % 20) == 0):
+                    print("Ep:" + str(episode) + " step:" + str(step) +"("+str(self.total_steps)+")" + ", a_t=[s={: f}, t={: f}, b={: f}]".format(a_t[0],a_t[1],a_t[2]) + ", Reward= {: f}".format(total_reward) + " / {: f}".format(self.best_total_reward) + ", epsilon= {: f}".format(self.epsilon))
 
                 # so that this loop stops if torcs is restarting or done!
                 if done:
@@ -169,12 +159,12 @@ class agent_runner(object):
             if(train_indicator):
                 #print("THIS IF SHOULD BE ACCESSED 19/20 TIMES")
                 if (total_reward > self.best_total_reward):
-                    print("Now we save model with reward " + str(total_reward) + " previous best reward was " + str(self.best_total_reward))
+                    #print("Now we save model with reward " + str(total_reward) + " previous best reward was " + str(self.best_total_reward))
                     self.best_total_reward = total_reward
                     self.agent.save_networks(global_step=self.total_steps, run_folder=self.folder_name)
             else:
                 if(self.best_total_reward > -100000):
-                    print("saving results from testing round!")
+                    #print("saving results from testing round!")
                     # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
                     self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, self.epsilon])
                     self.result.save()
@@ -243,6 +233,5 @@ class agent_runner(object):
 if __name__ == "__main__":
     runner = agent_runner()
     runner.run_ddpg()
-
 
 
