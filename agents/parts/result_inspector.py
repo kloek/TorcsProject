@@ -13,7 +13,7 @@ COL_NAMES = ["episode", "total_steps", "best_total_reward", "total_reward", "r_t
 
 
 # subrutine to main, of for automaticly creating plots
-def create_plot(npy_filename, y_col, x_col, title):
+"""def create_plot(npy_filename, y_col, x_col, title):
     print("selected file is = " + str(npy_filename) + "with y_col=" + str(y_col) + " and x_col=" + str(x_col) + ", remove first="+ str(remove_first))
 
     #TODO if file is npy ...
@@ -33,26 +33,46 @@ def create_plot(npy_filename, y_col, x_col, title):
     plt.xlabel(COL_NAMES[x_col])
     plt.title(title)
 
-    plt.savefig(filename + "_" + title + ".jpg")
+    plt.savefig(filename + "_" + title + ".jpg")"""
+
+def create_plots(npy_filename):
+
+    # load data from file!
+    data = np.load(file=npy_filename)
+
+    # x / episode
+    col_x = 1
+    x_episode = data[:,col_x]
+
+    # y1 / best total reward
+    col_btr = 2
+    y_btr = data[:,col_btr]
+
+    # y2 / total reward (episode
+    col_tr = 3
+    y_tr = data[:,col_tr]
+
+    # epsilon
+    col_eps = 4
+    y_eps = data[:,col_eps]
+
+
+    plt.plot(x_episode, y_btr,'r--', x_episode, y_tr,'g.')
+
+    plt.ylabel("Reward")
+    plt.xlabel("Episode")
+    plt.title("LALALA TODO ")
+
+    plt.savefig(filename + "_" + "FANCYPLOT" + ".jpg")
 
 
 
 # for manually creating plots....
 if __name__ == "__main__":
-    remove_first=False
+    #remove_first=False
     # open a file dialog to pick file!!!
     root = tk.Tk()
     root.withdraw()
     filename = filedialog.askopenfilename()
 
-    # select y and x columns
-    y_col = int(input("enter a number for y column \n [episode, total_steps, best_total_reward, total_reward, r_t, epsilon]: "))
-    x_col = int(input("enter a number for x column \n [episode, total_steps, best_total_reward, total_reward, r_t, epsilon]: "))
-
-    title = input("Select a title for plot (blank will generate title):")
-
-    if(title == ""):
-        # generate a title
-        title = "PLOT_y" + str(y_col) + "_x" + str(x_col)
-
-    create_plot(npy_filename=filename, y_col=y_col, x_col=x_col, title=title)
+    create_plots(npy_filename=filename)
