@@ -57,13 +57,14 @@ def create_plots(npy_filename):
     y_eps = data[:,col_eps]
 
 
+    # create reward plot
     plt.plot(x_episode, y_btr,'r--', x_episode, y_tr,'g.')
 
     plt.ylabel("Reward")
     plt.xlabel("Episode")
-    plt.title("LALALA TODO ")
+    plt.title("Reward ")
 
-    plt.savefig(filename + "_" + "FANCYPLOT" + ".jpg")
+    plt.savefig(npy_filename + "_" + "Reward" + ".jpg")
 
 
 

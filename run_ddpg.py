@@ -27,7 +27,7 @@ class agent_runner(object):
     is_training = True  # TODO sys arg or config file
     test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
     epsilon_start = 1  # TODO sys arg or config file
-    episode_count = 5000  # TODO sys arg or config file
+    episode_count = 1000  # TODO sys arg or config file
     max_steps = 1000  # TODO sys arg or config file
     EXPLORE = 300000.0
 
@@ -72,12 +72,6 @@ class agent_runner(object):
         # Generate a Torcs environment
         self.env = TorcsEnv(vision=self.vision, throttle=self.throttle, gear_change=self.gear_change)
         print("1. Env is created! with: vision="+str(self.vision) + ", throttle=" + str(self.throttle) +", gear_change=" + str(self.gear_change))
-
-        #action_space_shape = self.env.action_space.sample()
-        #print("action_space_shape = " + str(action_space_shape))
-
-        #observation_space_shape = self.create_state(self.env.observation_space.sample()).shape
-        #print("observation_space_shape = " + str(observation_space_shape))
 
         # Create agent
         self.agent = Agent(env_name="TORCS", state_dim=self.state_dim, action_dim=self.action_dim)
@@ -190,7 +184,6 @@ class agent_runner(object):
                     self.result.save()
 
         ### end for end of all episodes!
-
         self.finish()
 
 
