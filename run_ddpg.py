@@ -66,7 +66,6 @@ class agent_runner(object):
     settings_file = None
     result = None
 
-    total_training = 0
 
     def __init__(self):
 
@@ -153,7 +152,6 @@ class agent_runner(object):
 
                 ### training (includes 5 steps from ddpg algo):
                 if(train_indicator and self.agent.replay_buffer.count() > self.agent.REPLAY_START_SIZE):
-                    self.total_training += 1
                     self.agent.train()
 
                 # print info:
@@ -163,7 +161,8 @@ class agent_runner(object):
                           + ", Reward= {: f} / {: f}".format(total_reward, self.best_training_reward)
                           + ", epsilon= {: f}".format(self.epsilon)
                           + ", speed= {: f}".format(ob['speedX']*300)
-                          + ", gear={: f}".format(ob['gear']))
+                          + ", gear={: f}".format(ob['gear'])
+                          + ", damage={: f}".format(ob['damage']))
 
                 # so that this loop stops if torcs is restarting or done!
                 if done:
