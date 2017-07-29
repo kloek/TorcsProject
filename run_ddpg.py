@@ -32,7 +32,8 @@ class agent_runner(object):
     EXPLORE = 300000.0
 
     # initial values
-    best_total_reward = -100000  # best reward over all episodes and steps
+    best_training_reward = -math.inf  # best training reward over all episodes and steps
+    best_testing_reward = -math.inf
 
     total_steps = 0 # total nr of steps over all episodes
     start_time = None
@@ -159,7 +160,7 @@ class agent_runner(object):
                 if ((step % 20) == 0):
                     print("Ep:" + str(episode) + " step:" + str(step) +"("+str(self.total_steps)+")"
                           + ", a_t=[s={: f}, t={: f}, b={: f}]".format(a_t[0],a_t[1],a_t[2])
-                          + ", Reward= {: f} / {: f}".format(total_reward, self.best_total_reward)
+                          + ", Reward= {: f} / {: f}".format(total_reward, self.best_training_reward)
                           + ", epsilon= {: f}".format(self.epsilon)
                           + ", speed= {: f}".format(ob['speedX']*300)
                           + ", gear={: f}".format(ob['gear']))
@@ -168,20 +169,20 @@ class agent_runner(object):
                 if done:
                     break
 
+
             ### end for (en of episode)
             if(train_indicator):
-                if (total_reward > self.best_total_reward):  # update best reward
+                if (total_reward > self.best_training_reward):  # update best training reward
                     #print("Now we save model with reward " + str(total_reward) + " previous best reward was " + str(self.best_total_reward))
-                    self.best_total_reward = total_reward
+                    self.best_training_reward = total_reward
                     self.agent.save_networks(global_step=self.total_steps, run_folder=self.folder_name)
             else:
-                if(self.best_total_reward > -100000):
-                    #print("saving results from testing round!")
-                    if (total_reward > self.best_total_reward): # update best reward
-                        self.best_total_reward = total_reward
-                    # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
-                    self.result.add(row=[episode, self.total_steps, self.best_total_reward, total_reward, self.epsilon])
-                    self.result.save()
+                if (total_reward > self.best_testing_reward): # update best testing reward
+                    self.best_testing_reward = total_reward
+
+            # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
+            self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon])
+            if(episode % 10 == 0) : self.result.save()
 
         ### end for end of all episodes!
         self.finish()
@@ -232,7 +233,7 @@ class agent_runner(object):
         # 2. realistic sensors!! 5+ 36+ 19+ 1+ 1+ 1+ 4+ 1
         #s_t = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
 
-        # 3. combo! for driving without vision, but close to realistic! #TODO add gear (scaled)
+        # 3. combo! for driving without vision, but close to realistic!
         s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
         #print("s_t.shape=" + str(s_t.shape))
         return s_t
