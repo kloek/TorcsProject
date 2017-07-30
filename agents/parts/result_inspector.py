@@ -74,9 +74,9 @@ def create_plots(npy_filename):
     # create reward plot
     #plt.plot(train_x, train_y, 'r-', test_x, test_y, 'k-', reward_x, reward_y, 'g.')
     train_line = plt.plot(train_x, train_y, 'b--', label="Max Training Reward")
+    reward_dots = plt.plot(reward_x, reward_y, 'g.', label="Episode Reward")
     best_test_line = plt.plot(best_test_x, best_test_y, 'k-', label="Max Testing Reward")
     all_test_line = plt.plot(all_test_x, all_test_y, 'r--', label="All Testing Reward")
-    reward_dots = plt.plot(reward_x, reward_y, 'g.', label="Episode Reward")
 
     # add legend
     plt.legend()
