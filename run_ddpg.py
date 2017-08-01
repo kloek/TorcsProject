@@ -158,6 +158,7 @@ class agent_runner(object):
                 if ((step % 20) == 0):
                     print("Ep:" + str(episode) + " step:" + str(step) +"("+str(self.total_steps)+")"
                           + ", a_t=[s={: f}, t={: f}, b={: f}]".format(a_t[0],a_t[1],a_t[2])
+                          + ", r_t={: f}".format(r_t)
                           + ", Reward= {: f} / {: f}".format(total_reward, self.best_training_reward)
                           + ", epsilon= {: f}".format(self.epsilon)
                           + ", speed= {: f}".format(ob['speedX']*300)
