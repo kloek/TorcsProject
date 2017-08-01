@@ -29,7 +29,7 @@ class agent_runner(object):
     epsilon_start = 1  # TODO sys arg or config file
     episode_count = 1000  # TODO sys arg or config file
     max_steps = 1000  # TODO sys arg or config file
-    EXPLORE = 300000.0
+    EXPLORE = 400000.0
 
     # initial values
     best_training_reward = -math.inf  # best training reward over all episodes and steps
@@ -43,7 +43,7 @@ class agent_runner(object):
     # Gym_torcs
     vision = False
     throttle = True
-    gear_change = True #False # automatic
+    gear_change = True #False = drive only on first gear, limited to 80 km/h
 
 
 
@@ -88,6 +88,7 @@ class agent_runner(object):
 
         self.print_settings(settings_file=self.settings_file)  # print settings from runfile
         self.agent.print_settings(settings_file=self.settings_file)  # print settings from agent
+        self.print_commits() # add vesrion / commit files to run folder!
 
         self.settings_file.close()
 
@@ -181,7 +182,7 @@ class agent_runner(object):
                     self.best_testing_reward = total_reward
 
             # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
-            self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon])
+            self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop])
             if(episode % 10 == 0) : self.result.save()
 
         ### end for end of all episodes!
@@ -201,6 +202,13 @@ class agent_runner(object):
                          "action_dim = " + str(self.action_dim)]
         for line in settings_text:
             settings_file.write(line)  # print settings to file
+
+    def print_commits(self):
+        # get version / commit of current folder/gym_torcs
+        os.system("echo $(git log -n 1) > ./gym_torcs_version")
+        os.system("cp ./gym_torcs_version " + self.folder_name.replace(" ", "\ ") + "/gym_torcs_version")
+        os.system("cp ./agent_version " + self.folder_name.replace(" ", "\ ") + "/agent_version")
+
 
 
     def create_state(self, ob):
