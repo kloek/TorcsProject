@@ -43,7 +43,7 @@ class agent_runner(object):
     # Gym_torcs
     vision = False
     throttle = True
-    gear_change = True #False # automatic
+    gear_change = False #False = drive only on first gear, limited to 80 km/h
 
 
 
@@ -180,7 +180,7 @@ class agent_runner(object):
                     self.best_testing_reward = total_reward
 
             # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
-            self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon])
+            self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop])
             if(episode % 10 == 0) : self.result.save()
 
         ### end for end of all episodes!
