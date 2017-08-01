@@ -88,6 +88,7 @@ class agent_runner(object):
 
         self.print_settings(settings_file=self.settings_file)  # print settings from runfile
         self.agent.print_settings(settings_file=self.settings_file)  # print settings from agent
+        self.print_commits() # add vesrion / commit files to run folder!
 
         self.settings_file.close()
 
@@ -200,6 +201,13 @@ class agent_runner(object):
                          "action_dim = " + str(self.action_dim)]
         for line in settings_text:
             settings_file.write(line)  # print settings to file
+
+    def print_commits(self):
+        # get version / commit of current folder/gym_torcs
+        os.system("echo $(git log -n 1) > ./gym_torcs_version")
+        os.system("cp ./gym_torcs_version " + self.folder_name.replace(" ", "\ ") + "/gym_torcs_version")
+        os.system("cp ./agent_version " + self.folder_name.replace(" ", "\ ") + "/agent_version")
+
 
 
     def create_state(self, ob):
