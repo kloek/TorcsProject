@@ -29,7 +29,7 @@ class agent_runner(object):
     epsilon_start = 1  # TODO sys arg or config file
     episode_count = 1000  # TODO sys arg or config file
     max_steps = 1000  # TODO sys arg or config file
-    EXPLORE = 300000.0
+    EXPLORE = 400000.0
 
     # initial values
     best_training_reward = -math.inf  # best training reward over all episodes and steps
@@ -43,7 +43,7 @@ class agent_runner(object):
     # Gym_torcs
     vision = False
     throttle = True
-    gear_change = False #False = drive only on first gear, limited to 80 km/h
+    gear_change = True #False = drive only on first gear, limited to 80 km/h
 
 
 
