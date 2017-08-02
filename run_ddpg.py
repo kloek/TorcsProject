@@ -43,7 +43,7 @@ class agent_runner(object):
     # Gym_torcs
     vision = False
     throttle = True
-    gear_change = True #False = drive only on first gear, limited to 80 km/h
+    gear_change = False #False = drive only on first gear, limited to 80 km/h
 
 
 
@@ -157,14 +157,14 @@ class agent_runner(object):
 
                 # print info:
                 if ((step % 20) == 0):
-                    print("Ep:" + str(episode) + " step:" + str(step) +"("+str(self.total_steps)+")"
-                          + ", a_t=[s={: f}, t={: f}, b={: f}]".format(a_t[0],a_t[1],a_t[2])
+                    print("Ep:" + str(episode) + " step:" + str(step) + "(" + str(self.total_steps) + ")"
+                          + ", a_t=[s={: .2f}, t={: f}, b={: f}]".format(a_t[0], a_t[1], a_t[2])
                           + ", r_t={: f}".format(r_t)
-                          + ", Reward= {: f} / {: f}".format(total_reward, self.best_training_reward)
-                          + ", epsilon= {: f}".format(self.epsilon)
-                          + ", speed= {: f}".format(ob['speedX']*300)
-                          + ", gear={: f}".format(ob['gear'])
-                          + ", damage={: f}".format(ob['damage']))
+                          + ", Reward= {: .2f} / {: .2f}".format(total_reward, self.best_training_reward)
+                          + ", epsilon= {: .3f}".format(self.epsilon)
+                          + ", speed= {: .2f}".format(ob['speedX'] * 300)
+                          + ", gear={: .0f}".format(ob['gear'])
+                          + ", damage={: .2f}".format(ob['damage']))
 
                 # so that this loop stops if torcs is restarting or done!
                 if done:
