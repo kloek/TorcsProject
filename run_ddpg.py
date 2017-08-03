@@ -32,6 +32,8 @@ class agent_runner(object):
     max_steps = 10  # TODO sys arg or config file
     EXPLORE = 400000.0
 
+    log_size = 100 # number of episodes per log
+
     # initial values
     best_training_reward = -math.inf  # best training reward over all episodes and steps
     best_testing_reward = -math.inf
@@ -75,10 +77,11 @@ class agent_runner(object):
         self.folder_name = "runs/" + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + Agent.get_name())
         os.makedirs(self.folder_name)
         os.makedirs(self.folder_name + "/saved_networks")
+        os.makedirs(self.folder_name + "/logs")
 
         #redirect stdout to log file instead
         self.old_stdout = sys.stdout
-        self.log = open(self.folder_name+"/print.log","a")
+        self.log = open(self.folder_name+"/logs/init.log","a")
         sys.stdout = self.log
 
         # Generate a Torcs environment
@@ -104,6 +107,10 @@ class agent_runner(object):
     def run_ddpg(self):
         ### for episode = 1, M
         for episode in range(self.episode_count):
+
+            if(episode % self.log_size == 0):
+                self.new_log(episode=episode)
+
             print("=============================================================")
             print(" starting episode: " + str(episode) +"/"+ str(self.episode_count))
             done = self.done
@@ -270,6 +277,10 @@ class agent_runner(object):
         print("Run finnished at : " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
         sys.stdout = self.old_stdout
+
+    def new_log(self, episode):
+        self.log = open(self.folder_name + "/logs/run-"+str(episode)+".log", "a")
+        sys.stdout = self.log
 
 
 if __name__ == "__main__":
