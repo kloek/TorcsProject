@@ -33,6 +33,7 @@ class agent_runner(object):
     EXPLORE = 400000.0
 
     log_size = 100 # number of episodes per log
+    log_in_file = True
 
     # initial values
     best_training_reward = -math.inf  # best training reward over all episodes and steps
@@ -80,9 +81,10 @@ class agent_runner(object):
         os.makedirs(self.folder_name + "/logs")
 
         #redirect stdout to log file instead
-        self.old_stdout = sys.stdout
-        self.log = open(self.folder_name+"/logs/init.log","a")
-        sys.stdout = self.log
+        if(self.log_in_file):
+            self.old_stdout = sys.stdout
+            self.log = open(self.folder_name+"/logs/init.log","a")
+            sys.stdout = self.log
 
         # Generate a Torcs environment
         self.env = TorcsEnv(vision=self.vision, throttle=self.throttle, gear_change=self.gear_change)
@@ -108,7 +110,7 @@ class agent_runner(object):
         ### for episode = 1, M
         for episode in range(self.episode_count):
 
-            if(episode % self.log_size == 0):
+            if(self.log_in_file and episode % self.log_size == 0):
                 self.new_log(episode=episode)
 
             print("=============================================================")
@@ -195,10 +197,11 @@ class agent_runner(object):
 
             # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
             self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop])
+
             if(episode % 10 == 0) :
                 self.result.save()
                 # do some end of ep printing in regular terminal so its easier to see if running!
-                self.log.flush()
+                if(self.log_in_file): self.log.flush()
                 self.print_memory(episode=episode)
 
 
