@@ -107,7 +107,7 @@ class Agent(AbstractAgent):
         self.actor_network.update_target()
         self.critic_network.update_target()
 
-    def get_name(self):
+    def get_name():
         return self.AGENT_NAME
 
     def print_settings(self, settings_file):

@@ -19,7 +19,7 @@ from agents.parts.replay_buffer import ReplayBuffer
 
 class Agent(AbstractAgent):
 
-    AGENT_NAME = "DDPG Original"
+
 
     # Hyper Parameters:
     REPLAY_BUFFER_SIZE = 100000
@@ -41,7 +41,7 @@ class Agent(AbstractAgent):
 
         # Ensure action bound is symmetric
         self.time_step = 0
-        self.sess = tf.InteractiveSession()
+        self.sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 
         ### Randomly initialize critic network and actor with weights θQ and θμ
         self.actor_network = Actor(self.sess, self.state_dim, self.action_dim)
@@ -122,8 +122,9 @@ class Agent(AbstractAgent):
         self.actor_network.update_target()
         self.critic_network.update_target()
 
-    def get_name(self):
-        return self.AGENT_NAME
+    @staticmethod
+    def get_name():
+        return "DDPG Original"
 
     def print_settings(self, settings_file):
         # 1. print settings of this agent

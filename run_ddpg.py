@@ -6,6 +6,7 @@ import numpy as np
 import random
 import math
 import os
+import sys
 import datetime
 
 import gc
@@ -28,7 +29,7 @@ class agent_runner(object):
     test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
     epsilon_start = 1  # TODO sys arg or config file
     episode_count = 1000  # TODO sys arg or config file
-    max_steps = 1000  # TODO sys arg or config file
+    max_steps = 10  # TODO sys arg or config file
     EXPLORE = 400000.0
 
     # initial values
@@ -69,6 +70,17 @@ class agent_runner(object):
 
     def __init__(self):
 
+        # create a folder in runs for saving info about the run, result, and trained nets!!
+        self.start_time = datetime.datetime.now()
+        self.folder_name = "runs/" + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + Agent.get_name())
+        os.makedirs(self.folder_name)
+        os.makedirs(self.folder_name + "/saved_networks")
+
+        #redirect stdout to log file instead
+        self.old_stdout = sys.stdout
+        self.log = open(self.folder_name+"/print.log","a")
+        sys.stdout = self.log
+
         # Generate a Torcs environment
         self.env = TorcsEnv(vision=self.vision, throttle=self.throttle, gear_change=self.gear_change)
         print("1. Env is created! with: vision="+str(self.vision) + ", throttle=" + str(self.throttle) +", gear_change=" + str(self.gear_change))
@@ -76,12 +88,6 @@ class agent_runner(object):
         # Create agent
         self.agent = Agent(env_name="TORCS", state_dim=self.state_dim, action_dim=self.action_dim)
         print("2. Agent is created! with state_dim=" + str(self.state_dim) + ", action_dim=" + str(self.action_dim))
-
-        # create a folder in runs for saving info about the run, result, and trained nets!!
-        self.start_time = datetime.datetime.now()
-        self.folder_name = "runs/" + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + self.agent.get_name())
-        os.makedirs(self.folder_name)
-        os.makedirs(self.folder_name+"/saved_networks")
 
         # create a settings file ( only for saving setting, not for applying settings!!!!
         self.settings_file = open(self.folder_name + "/" + "settings", "a")
@@ -96,7 +102,6 @@ class agent_runner(object):
 
 
     def run_ddpg(self):
-
         ### for episode = 1, M
         for episode in range(self.episode_count):
             print("=============================================================")
@@ -183,7 +188,13 @@ class agent_runner(object):
 
             # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
             self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop])
-            if(episode % 10 == 0) : self.result.save()
+            if(episode % 10 == 0) :
+                self.result.save()
+                # do some end of ep printing in regular terminal so its easier to see if running!
+                self.log.flush()
+
+
+
 
         ### end for end of all episodes!
         self.finish()
@@ -256,6 +267,9 @@ class agent_runner(object):
         # add finished to the run folder!
         os.system("mv " + self.folder_name.replace(" ", "\ ")  + " " + (self.folder_name+" FINISHED").replace(" ", "\ "))
         self.env.end()  # This is for shutting down TORCS
+        print("Run finnished at : " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+        sys.stdout = self.old_stdout
 
 
 if __name__ == "__main__":

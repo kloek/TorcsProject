@@ -18,7 +18,8 @@ class AbstractAgent(object):
         raise NotImplementedError
 
     # name of agent
-    def get_name(self):
+    @staticmethod
+    def get_name():
         raise NotImplementedError
 
     # print settings to settings file

@@ -37,5 +37,5 @@ class Agent(AbstractAgent):
             """
         return np.tanh(np.random.randn(self.dim_action)) # random action
 
-    def get_name(self):
+    def get_name():
         return "Sample Agent"
