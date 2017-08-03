@@ -29,7 +29,7 @@ class agent_runner(object):
     test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
     epsilon_start = 1  # TODO sys arg or config file
     episode_count = 1000  # TODO sys arg or config file
-    max_steps = 10  # TODO sys arg or config file
+    max_steps = 1000  # TODO sys arg or config file
     EXPLORE = 400000.0
 
     log_size = 100 # number of episodes per log
@@ -199,6 +199,7 @@ class agent_runner(object):
                 self.result.save()
                 # do some end of ep printing in regular terminal so its easier to see if running!
                 self.log.flush()
+                self.print_memory(episode=episode)
 
 
 
@@ -226,6 +227,11 @@ class agent_runner(object):
         os.system("echo $(git log -n 1) > ./gym_torcs_version")
         os.system("cp ./gym_torcs_version " + self.folder_name.replace(" ", "\ ") + "/gym_torcs_version")
         os.system("cp ./agent_version " + self.folder_name.replace(" ", "\ ") + "/agent_version")
+
+    def print_memory(self, episode):
+        file = self.folder_name.replace(" ", "\ ") + "/logs/memory.log"
+        os.system("echo 'Episode "+ str(episode) + "' >> " + file )
+        os.system("echo $(free -m) >> " + file)
 
 
 
