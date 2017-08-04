@@ -60,6 +60,9 @@ class agent_runner(object):
     # 3. combo! for driving without vision, but close to realistic!
     state_dim = 90
 
+    # 4. combo! same as 3 but without focus sensor!!!
+    state_dim = 85
+
     action_dim = 3
 
     env = None
@@ -270,7 +273,13 @@ class agent_runner(object):
 
         # 3. combo! for driving without vision, but close to realistic!
         s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
-        #print("s_t.shape=" + str(s_t.shape))
+
+
+        # 4. combo! for driving without vision, but close to realistic, removed focus as that sensor is not reliable!!!
+        s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['opponents'], ob['track'],
+                         ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear'] / 6))
+
+        # print("s_t.shape=" + str(s_t.shape))
         return s_t
 
     def do_early_stop(self, epsilon, train_indicator):
