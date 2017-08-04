@@ -131,7 +131,7 @@ class agent_runner(object):
 
             ### Receive initial observation state s_t
             # relaunch TORCS every 5 episode because of the memory leak error
-            ob = self.env.reset(relaunch=((episode % 5) == 0))
+            ob = self.env.reset(relaunch=((episode % 6) == 0))
             s_t = self.create_state(ob)
 
 
