@@ -52,16 +52,16 @@ class agent_runner(object):
 
 
     # 1. original sensors!!!
-    #state_dim = 30
+    state_dim = 29
 
     # 2. realistic sensors!! (vithout vision)
     #state_dim = 89
 
     # 3. combo! for driving without vision, but close to realistic!
-    state_dim = 90
+    #state_dim = 90
 
     # 4. combo! same as 3 but without focus sensor!!!
-    state_dim = 85
+    #state_dim = 85
 
     action_dim = 3
 
@@ -266,18 +266,18 @@ class agent_runner(object):
         # print("observation=" + str(ob))
         # some numbers are scaled, se scale_observation(..) in gym_torcs
         # 1. original sensors!!!
-        #s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
+        s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
 
         # 2. realistic sensors!! 5+ 36+ 19+ 1+ 1+ 1+ 4+ 1
         #s_t = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
 
         # 3. combo! for driving without vision, but close to realistic!
-        s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
+        #s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
 
 
         # 4. combo! for driving without vision, but close to realistic, removed focus as that sensor is not reliable!!!
-        s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['opponents'], ob['track'],
-                         ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear'] / 6))
+        #s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['opponents'], ob['track'],
+                         #ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear'] / 6))
 
         # print("s_t.shape=" + str(s_t.shape))
         return s_t
