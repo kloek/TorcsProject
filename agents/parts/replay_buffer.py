@@ -27,7 +27,7 @@ class ReplayBuffer(object):
         else:
             self.buffer.popleft()
             self.buffer.append(experience)
-        self.mean_reward = ( (self.mean_reward * (self.num_experiences-1)) + reward) / float( self.num_experiences )
+        self.mean_reward = ( (self.mean_reward * (self.num_experiences-1)) + reward[0]) / float( self.num_experiences )
 
 
     def count(self):

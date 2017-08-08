@@ -33,9 +33,10 @@ class Agent(AbstractAgent):
     OU = None
 
     #Construct ddpg agent
-    def __init__(self,env_name, state_dim, action_dim):
+    def __init__(self,env_name, state_dim, action_dim, safety_critic=False):
         self.state_dim = state_dim  # dimention of states e.g vision size and other sensors!
         self.action_dim = action_dim  # dimention of action e.g 3 for steering, throttle, and break
+        self.safety_critic = safety_critic  # false = normal ddpg, true = safety critic test!
 
         self.env_name = env_name
 
@@ -46,6 +47,10 @@ class Agent(AbstractAgent):
         ### Randomly initialize critic network and actor with weights θQ and θμ
         self.actor_network = Actor(self.sess, self.state_dim, self.action_dim)
         self.critic_network = Critic(self.sess, self.state_dim, self.action_dim)
+
+        # create an extra safety critic:
+        if (self.safety_critic):
+            self.safety_critic_network = Critic(self.sess, self.state_dim, self.action_dim)
 
         ### Initialize replay buffer R
         self.replay_buffer = ReplayBuffer(self.REPLAY_BUFFER_SIZE)
@@ -91,7 +96,10 @@ class Agent(AbstractAgent):
         minibatch = self.replay_buffer.getBatch(self.BATCH_SIZE)
         state_batch = np.asarray([data[0] for data in minibatch])
         action_batch = np.asarray([data[1] for data in minibatch])
+
+        # the reward batch is no longer just one column!
         reward_batch = np.asarray([data[2] for data in minibatch])
+
         next_state_batch = np.asarray([data[3] for data in minibatch])
         done_batch = np.asarray([data[4] for data in minibatch])
 
@@ -99,15 +107,17 @@ class Agent(AbstractAgent):
         action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
 
         # Calculate y_batch
-
+        # next_action = μ'(st+1 | θ'μ')
         next_action_batch = self.actor_network.target_actions(next_state_batch)
+        # Q_values = Q'(Si+1, next_action | θ'Q)
         q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
+
         y_batch = []
         for i in range(len(minibatch)):
             if done_batch[i]:
-                y_batch.append(reward_batch[i])
+                y_batch.append(reward_batch[i,0])
             else:
-                y_batch.append(reward_batch[i] + self.GAMMA * q_value_batch[i])
+                y_batch.append(reward_batch[i,0] + self.GAMMA * q_value_batch[i])
         y_batch = np.resize(y_batch, [self.BATCH_SIZE, 1])
         # Update critic by minimizing the loss L
         self.critic_network.train(y_batch, state_batch, action_batch)
