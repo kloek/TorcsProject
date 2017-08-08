@@ -4,7 +4,7 @@ gym_torcs="$HOME/Documents/Thesis_work/gym_torcs"
 TorcsProjectVersion="TorcsProjectVersion"
 
 # version / commit installed
-echo $(git log -n 1) > $gym_torcs/agent_version
+git log -n 1 > $gym_torcs/agent_version
 
 # agents folder
 rm -rf $gym_torcs/agents
