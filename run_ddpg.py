@@ -33,7 +33,7 @@ class agent_runner(object):
     EXPLORE = 400000.0
 
     log_size = 100 # number of episodes per log
-    log_in_file = False
+    log_in_file = True
 
     # initial values
     best_training_reward = -math.inf  # best training reward over all episodes and steps
