@@ -28,8 +28,8 @@ class agent_runner(object):
     is_training = True  # TODO sys arg or config file
     test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
     epsilon_start = 1  # TODO sys arg or config file
-    episode_count = 1000  # TODO sys arg or config file
-    max_steps = 1000  # TODO sys arg or config file
+    episode_count = 2000  # TODO sys arg or config file
+    max_steps = 2000  # TODO sys arg or config file
     EXPLORE = 400000.0
 
     log_size = 100 # number of episodes per log
@@ -48,7 +48,7 @@ class agent_runner(object):
     vision = False
     throttle = True
     gear_change = False #False = drive only on first gear, limited to 80 km/h
-    safety_critic = False  # false = normal ddpg, True = double critic
+    safety_critic = True  # false = normal ddpg, True = double critic
 
 
     # 1. original sensors!!!

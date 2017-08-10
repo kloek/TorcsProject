@@ -97,7 +97,7 @@ class Agent(AbstractAgent):
         state_batch = np.asarray([data[0] for data in minibatch])
         action_batch = np.asarray([data[1] for data in minibatch])
 
-        # the reward batch is no longer just one column!
+        # the reward batch is no longer just one column! (it's a list of 4 cols....)
         reward_batch = np.asarray([data[2] for data in minibatch])
 
         next_state_batch = np.asarray([data[3] for data in minibatch])
@@ -107,30 +107,50 @@ class Agent(AbstractAgent):
         action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
 
         # Calculate y_batch
-        # next_action = μ'(st+1 | θ'μ')
-        next_action_batch = self.actor_network.target_actions(next_state_batch)
-        # Q_values = Q'(Si+1, next_action | θ'Q)
-        q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
+        y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0)
+        y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1)
+        y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2)
+        y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3)
 
-        y_batch = []
-        for i in range(len(minibatch)):
-            if done_batch[i]:
-                y_batch.append(reward_batch[i,0])
-            else:
-                y_batch.append(reward_batch[i,0] + self.GAMMA * q_value_batch[i])
-        y_batch = np.resize(y_batch, [self.BATCH_SIZE, 1])
         # Update critic by minimizing the loss L
-        self.critic_network.train(y_batch, state_batch, action_batch)
+        if(self.critic_network):
+            self.critic_network.train(y_batch_progress, state_batch, action_batch)
+            self.safety_critic_network.train(y_batch_penalty, state_batch, action_batch)
+        else:
+            self.critic_network.train(y_batch_reward, state_batch, action_batch)
 
         # Update the actor policy using the sampled gradient:
         action_batch_for_gradients = self.actor_network.actions(state_batch)
-        q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
+        #q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
 
-        self.actor_network.train(q_gradient_batch, state_batch)
+        if(self.safety_critic):
+            q_gradient_batch_progress = self.critic_network.gradients(state_batch, action_batch_for_gradients)
+            q_gradient_batch_penalty = self.safety_critic_network.gradients(state_batch, action_batch_for_gradients)
+            self.actor_network.train(q_gradient_batch_progress, state_batch)
+            self.actor_network.train(q_gradient_batch_penalty, state_batch)
+        else:
+            q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
+            self.actor_network.train(q_gradient_batch, state_batch)
+
+        #self.actor_network.train(q_gradient_batch, state_batch)
 
         # Update the target networks
         self.actor_network.update_target()
         self.critic_network.update_target()
+
+    def calc_y_batch(self, done_batch, minibatch, next_state_batch, reward_batch, reward_col):
+        # next_action = μ'(st+1 | θ'μ')
+        next_action_batch = self.actor_network.target_actions(next_state_batch)
+        # Q_values = Q'(Si+1, next_action | θ'Q)
+        q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
+        y_batch = []
+        for i in range(len(minibatch)):
+            if done_batch[i]:
+                y_batch.append(reward_batch[i, 0])
+            else:
+                y_batch.append(reward_batch[i, 0] + self.GAMMA * q_value_batch[i])
+        y_batch = np.resize(y_batch, [self.BATCH_SIZE, 1])
+        return y_batch
 
     @staticmethod
     def get_name():
