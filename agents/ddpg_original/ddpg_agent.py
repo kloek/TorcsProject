@@ -137,6 +137,8 @@ class Agent(AbstractAgent):
         # Update the target networks
         self.actor_network.update_target()
         self.critic_network.update_target()
+        if(self.safety_critic):
+            self.safety_critic_network.update_target()
 
     def calc_y_batch(self, done_batch, minibatch, next_state_batch, reward_batch, reward_col):
         # next_action = μ'(st+1 | θ'μ')
@@ -146,9 +148,9 @@ class Agent(AbstractAgent):
         y_batch = []
         for i in range(len(minibatch)):
             if done_batch[i]:
-                y_batch.append(reward_batch[i, 0])
+                y_batch.append(reward_batch[i, reward_col])
             else:
-                y_batch.append(reward_batch[i, 0] + self.GAMMA * q_value_batch[i])
+                y_batch.append(reward_batch[i, reward_col] + self.GAMMA * q_value_batch[i])
         y_batch = np.resize(y_batch, [self.BATCH_SIZE, 1])
         return y_batch
 
