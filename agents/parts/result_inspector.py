@@ -35,7 +35,7 @@ COL_NAMES = ["episode", "total_steps", "best_total_reward", "total_reward", "r_t
     plt.savefig(filename + "_" + title + ".jpg")"""
 
 def create_plots(npy_filename):
-    # row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon]
+    # [episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop, ob['damage']])
 
     # load data from file!
     data = np.load(file=npy_filename)
@@ -70,6 +70,11 @@ def create_plots(npy_filename):
     epsilon_x = data[:, col_x]
     epsilon_y = data[:,col_eps]
 
+    # epsilon
+    col_damage = 8
+    damage_x = data[:, col_x]
+    damage_y = data[:,col_damage]
+
 
     # create reward plot
     #plt.plot(train_x, train_y, 'r-', test_x, test_y, 'k-', reward_x, reward_y, 'g.')
@@ -77,6 +82,7 @@ def create_plots(npy_filename):
     reward_dots = plt.plot(reward_x, reward_y, 'g.', label="Episode Reward")
     best_test_line = plt.plot(best_test_x, best_test_y, 'k-', label="Max Testing Reward")
     all_test_line = plt.plot(all_test_x, all_test_y, 'r--', label="All Testing Reward")
+    damage_line = plt.plot(damage_x, damage_y, 'y--', label="Damage")
 
     # add legend
     plt.legend()
@@ -86,6 +92,8 @@ def create_plots(npy_filename):
     plt.title("Reward ")
 
     plt.savefig(npy_filename + "_" + "Reward" + ".jpg")
+
+
 
 
 

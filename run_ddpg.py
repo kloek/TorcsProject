@@ -201,7 +201,7 @@ class agent_runner(object):
                     self.best_testing_reward = total_reward
 
             # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
-            self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop])
+            self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop, ob['damage']])
 
             if(episode % 10 == 0) :
                 self.result.save()
