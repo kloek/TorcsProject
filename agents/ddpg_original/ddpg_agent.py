@@ -110,10 +110,10 @@ class Agent(AbstractAgent):
         y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0)
         y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1)
         y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2)
-        y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3)
+        #y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3)
 
         # Update critic by minimizing the loss L
-        if(self.critic_network):
+        if(self.safety_critic):
             self.critic_network.train(y_batch_progress, state_batch, action_batch)
             self.safety_critic_network.train(y_batch_penalty, state_batch, action_batch)
         else:
