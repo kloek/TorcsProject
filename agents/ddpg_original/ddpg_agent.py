@@ -107,10 +107,10 @@ class Agent(AbstractAgent):
         action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
 
         # Calculate y_batch
-        y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0)
-        y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1)
-        y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2)
-        #y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3)
+        y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0, gamma=self.GAMMA)
+        y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1, gamma=self.GAMMA)
+        y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, gamma=self.GAMMA)
+        #y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3, gamma=self.GAMMA)
 
         # Update critic by minimizing the loss L
         if(self.safety_critic):
@@ -140,7 +140,7 @@ class Agent(AbstractAgent):
         if(self.safety_critic):
             self.safety_critic_network.update_target()
 
-    def calc_y_batch(self, done_batch, minibatch, next_state_batch, reward_batch, reward_col):
+    def calc_y_batch(self, done_batch, minibatch, next_state_batch, reward_batch, reward_col, gamma):
         # next_action = μ'(st+1 | θ'μ')
         next_action_batch = self.actor_network.target_actions(next_state_batch)
         # Q_values = Q'(Si+1, next_action | θ'Q)
@@ -150,7 +150,7 @@ class Agent(AbstractAgent):
             if done_batch[i]:
                 y_batch.append(reward_batch[i, reward_col])
             else:
-                y_batch.append(reward_batch[i, reward_col] + self.GAMMA * q_value_batch[i])
+                y_batch.append(reward_batch[i, reward_col] + gamma * q_value_batch[i])
         y_batch = np.resize(y_batch, [self.BATCH_SIZE, 1])
         return y_batch
 
