@@ -128,8 +128,12 @@ class Agent(AbstractAgent):
         if(self.safety_critic):
             q_gradient_batch_progress = self.critic_network.gradients(state_batch, action_batch_for_gradients)
             q_gradient_batch_penalty = self.safety_critic_network.gradients(state_batch, action_batch_for_gradients)
-            self.actor_network.train(q_gradient_batch_progress, state_batch)
-            self.actor_network.train(q_gradient_batch_penalty, state_batch)
+
+            # calculate the mean of q_batches from progress an penalty! (safety critic v2)
+            q_gradient_batch_mean = np.mean([np.asarray(q_gradient_batch_progress), np.asarray(q_gradient_batch_penalty)], axis=0)
+
+            # train using mean batch (safety critic v2)
+            self.actor_network.train(q_gradient_batch_mean, state_batch)
         else:
             q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
             self.actor_network.train(q_gradient_batch, state_batch)
