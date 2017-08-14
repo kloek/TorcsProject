@@ -40,16 +40,6 @@ class Critic:
         weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
         self.cost = tf.reduce_mean(tf.square(self.y_input - self.q_value_output)) + weight_decay
         self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.cost)
-        '''
-        self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE)
-            self.parameters_gradients = self.optimizer.compute_gradients(self.cost)
-    
-            for i, (grad,var) in enumerate(self.parameters_gradients):
-                if grad is not None:
-                    self.parameters_gradients[i] = (tf.clip_by_value(grad, -5.0,5.0),var)
-    
-            self.train_op = self.optimizer.apply_gradients(self.parameters_gradients)
-        '''
         self.action_gradients = tf.gradients(self.q_value_output, self.action_input)
 
     def create_q_network(self, state_dim, action_dim):
@@ -60,17 +50,24 @@ class Critic:
         state_input = tf.placeholder("float", [None, state_dim])
         action_input = tf.placeholder("float", [None, action_dim])
 
-        W1 = self.variable([state_dim, layer1_size], state_dim)
-        b1 = self.variable([layer1_size], state_dim)
-        W2 = self.variable([layer1_size, layer2_size], layer1_size + action_dim)
-        W2_action = self.variable([action_dim, layer2_size], layer1_size + action_dim)
-        b2 = self.variable([layer2_size], layer1_size + action_dim)
-        W3 = tf.Variable(tf.random_uniform([layer2_size, 1], -3e-3, 3e-3))
-        b3 = tf.Variable(tf.random_uniform([1], -3e-3, 3e-3))
+        # W1 = self.variable([state_dim, layer1_size], state_dim)
+        W1 = tf.Variable(tf.random_uniform([state_dim, layer1_size], -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="W1")
+        # b1 = self.variable([layer1_size], state_dim)
+        b1 = tf.Variable(tf.random_uniform([layer1_size], -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="b1")
 
-        layer1 = tf.nn.relu(tf.matmul(state_input, W1) + b1)
-        layer2 = tf.nn.relu(tf.matmul(layer1, W2) + tf.matmul(action_input, W2_action) + b2)
-        q_value_output = tf.identity(tf.matmul(layer2, W3) + b3)
+        # W2 = self.variable([layer1_size, layer2_size], layer1_size)
+        W2 = tf.Variable(tf.random_uniform([layer1_size, layer2_size], -1 / math.sqrt(layer1_size + action_dim), 1 / math.sqrt(layer1_size + action_dim)), name="W2")
+        # W2_action = self.variable([action_dim, layer2_size], layer1_size + action_dim)
+        W2_action = tf.Variable(tf.random_uniform([action_dim, layer2_size], -1 / math.sqrt(layer1_size + action_dim), 1 / math.sqrt(layer1_size + action_dim)), name="W2_action")
+        # b2 = self.variable([layer2_size], layer1_size)
+        b2 = tf.Variable(tf.random_uniform([layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="b2")
+
+        W3 = tf.Variable(tf.random_uniform([layer2_size, 1], -3e-3, 3e-3), name="W3")
+        b3 = tf.Variable(tf.random_uniform([1], -3e-3, 3e-3), name="b3")
+
+        layer1 = tf.nn.relu(tf.matmul(state_input, W1) + b1, name="layer1")
+        layer2 = tf.nn.relu(tf.matmul(layer1, W2) + tf.matmul(action_input, W2_action) + b2, name="layer2")
+        q_value_output = tf.identity(tf.matmul(layer2, W3) + b3, name="q_value_output")
 
         return state_input, action_input, q_value_output, [W1, b1, W2, W2_action, b2, W3, b3]
 

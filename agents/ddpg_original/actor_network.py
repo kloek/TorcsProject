@@ -47,32 +47,38 @@ class Actor:
         layer1_size = LAYER1_SIZE
         layer2_size = LAYER2_SIZE
 
-        state_input = tf.placeholder("float", [None, state_dim])
+        state_input = tf.placeholder("float", [None, state_dim], name="state_input")
 
-        W1 = self.variable([state_dim, layer1_size], state_dim)
-        b1 = self.variable([layer1_size], state_dim)
-        W2 = self.variable([layer1_size, layer2_size], layer1_size)
-        b2 = self.variable([layer2_size], layer1_size)
+        #W1 = self.variable([state_dim, layer1_size], state_dim)
+        W1 = tf.Variable(tf.random_uniform([state_dim, layer1_size], -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="W1")
+        #b1 = self.variable([layer1_size], state_dim)
+        b1 = tf.Variable(tf.random_uniform([layer1_size], -1 / math.sqrt(state_dim), 1 / math.sqrt(state_dim)), name="b1")
+
+        #W2 = self.variable([layer1_size, layer2_size], layer1_size)
+        W2 = tf.Variable(tf.random_uniform([layer1_size, layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="W2")
+        #b2 = self.variable([layer2_size], layer1_size)
+        b2 = tf.Variable(tf.random_uniform([layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="b2")
+
         # W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
         # b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
 
-        W_steer = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4))
-        b_steer = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4))
+        W_steer = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_steer")
+        b_steer = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_steer")
 
-        W_accel = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4))
-        b_accel = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4))
+        W_accel = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_accel")
+        b_accel = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_accel")
 
-        W_brake = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4))
-        b_brake = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4))
+        W_brake = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_brake")
+        b_brake = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_brake")
 
-        layer1 = tf.nn.relu(tf.matmul(state_input, W1) + b1)
-        layer2 = tf.nn.relu(tf.matmul(layer1, W2) + b2)
+        layer1 = tf.nn.relu(tf.matmul(state_input, W1) + b1, name="layer1")
+        layer2 = tf.nn.relu(tf.matmul(layer1, W2) + b2, name="layer2")
 
-        steer = tf.tanh(tf.matmul(layer2, W_steer) + b_steer)
-        accel = tf.sigmoid(tf.matmul(layer2, W_accel) + b_accel)
-        brake = tf.sigmoid(tf.matmul(layer2, W_brake) + b_brake)
+        steer = tf.tanh(tf.matmul(layer2, W_steer) + b_steer, name="steer")
+        accel = tf.sigmoid(tf.matmul(layer2, W_accel) + b_accel, name="accel")
+        brake = tf.sigmoid(tf.matmul(layer2, W_brake) + b_brake, name="brake")
 
-        action_output = tf.concat([steer, accel, brake], 1)
+        action_output = tf.concat([steer, accel, brake], 1, name="action_output")
 
         return state_input, action_output, [W1, b1, W2, b2, W_steer, b_steer, W_accel, b_accel, W_brake, b_brake]
 
