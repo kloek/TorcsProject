@@ -9,6 +9,7 @@ import os
 import sys
 import datetime
 import config
+import timeit
 
 import gc
 gc.enable()
@@ -44,6 +45,7 @@ class agent_runner(object):
     safety_critic = config.safety_critic
 
     state_dim = config.state_dim
+    sensor_list = config.sensor_list
     action_dim = config.action_dim
 
     # initial values
@@ -121,8 +123,7 @@ class agent_runner(object):
             ### Receive initial observation state s_t
             # relaunch TORCS every 6 episode because of the memory leak error
             ob = self.env.reset(relaunch=((episode % 6) == 0))
-            s_t = self.create_state(ob)
-
+            s_t = self.create_state2(ob)
 
             ### for t = 1, T
             for step in range(self.max_steps):
@@ -139,7 +140,7 @@ class agent_runner(object):
 
                 # 2. send that action to the environment and observe rt and new state
                 ob, r_t, done, info = self.env.step(a_t, early_stop)
-                s_t1 = self.create_state(ob) # next state, after action a_t
+                s_t1 = self.create_state2(ob) # next state, after action a_t
 
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
@@ -208,28 +209,7 @@ class agent_runner(object):
         os.system("echo $(free -m) >> " + file)
 
 
-
     def create_state(self, ob):
-        # TODO this is without vision!!!!!
-        """names = ['angle',
-             'curLapTime',
-             'damage',
-             'distFromStart',
-             'distRaced',
-             'focus',
-             'fuel',
-             'gear',
-             'lastLapTime',
-             'opponents',
-             'racePos',
-             'rpm',
-             'speedX',
-             'speedY',
-             'speedZ',
-             'track',
-             'trackPos',
-             'wheelSpinVel',
-             'z']"""
 
         # print("observation=" + str(ob))
         # some numbers are scaled, se scale_observation(..) in gym_torcs
@@ -249,6 +229,17 @@ class agent_runner(object):
 
         # print("s_t.shape=" + str(s_t.shape))
         return s_t
+
+    ## this version of crete state is much slower than the one above, but it enables selecting sensors in config file
+    # tested how much slover it is and it only adds up to seconds over 100k steps!!
+    def create_state2(self, ob):
+        stack = []
+        for sensor in self.sensor_list:
+            stack = np.hstack((stack, ob[sensor]))
+
+        s_t = stack
+        return s_t
+
 
     def do_early_stop(self, epsilon, train_indicator):
         random_number = random.random()

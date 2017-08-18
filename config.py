@@ -23,6 +23,7 @@ safety_critic = True  # false = normal ddpg, True = double critic
 
 # 1. original sensors!!!
 state_dim = 29
+sensor_list = ['angle', 'track', 'trackPos', 'speedX', 'speedY', 'speedZ', 'wheelSpinVel', 'rpm']
 
 # 2. realistic sensors!! (vithout vision)
 #state_dim = 89
@@ -32,6 +33,10 @@ state_dim = 29
 
 # 4. combo! same as 3 but without focus sensor!!!
 #state_dim = 85
+
+
+"""names = ['angle','curLapTime','damage','distFromStart','distRaced','focus','fuel','gear','lastLapTime','opponents','racePos',
+     'rpm','speedX','speedY','speedZ','track','trackPos','wheelSpinVel','z']"""
 
 action_dim = 3
 

@@ -43,7 +43,7 @@ class Agent(AbstractAgent):
 
         # Ensure action bound is symmetric
         self.time_step = 0
-        self.sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
+        self.sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
 
         ### Randomly initialize critic network and actor with weights θQ and θμ
         print("creating actor and critic")
