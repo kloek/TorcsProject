@@ -56,4 +56,26 @@ RUN git clone https://github.com/pierg/TorcsProject.git && \
     cp config.py ../gym_torcs/ && \
     cd ..
 
+
+#Configuring Display
+RUN apt-get install -y default-jdk \
+    aspectj
+
+RUN apt-get install screen
+
+RUN apt-get install -y x11vnc xvfb
+RUN mkdir ~/.vnc
+
+RUN echo "export DISPLAY=:1.0" >> .bashrc
+
+ADD practice.xml ~/.torcs/config/raceman
+ADD practice.xml /usr/local/share/games/torcs/config/raceman
+
+EXPOSE 80
+ADD entrypoint.sh /
+ENTRYPOINT /entrypoint.sh ; /bin/bash
+
+
+
+
 WORKDIR gym_torcs/
