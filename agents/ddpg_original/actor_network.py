@@ -1,13 +1,13 @@
 import tensorflow as tf
 import numpy as np
 import math
+import config
 
 # Hyper Parameters
-LAYER1_SIZE = 300
-LAYER2_SIZE = 400
-LEARNING_RATE = 1e-4
-TAU = 0.001
-BATCH_SIZE = 32
+LAYER1_SIZE = config.A_LAYER1_SIZE
+LAYER2_SIZE = config.A_LAYER2_SIZE
+LEARNING_RATE = config.A_LEARNING_RATE
+TAU = config.A_TAU
 
 
 class Actor:
@@ -20,10 +20,12 @@ class Actor:
 
         # create actor network
         self.state_input, self.action_output, self.net = self.create_network(state_dim, action_dim)
+        print("Actor network = " + str(self.net))
 
         # create target actor network
         self.target_state_input, self.target_action_output, self.target_update, self.target_net = self.create_target_network(
             state_dim, action_dim, self.net)
+        print("Actor target_network = " + str(self.target_net))
 
         # define training rules
         self.create_training_method()
@@ -123,16 +125,5 @@ class Actor:
         })
 
     # f fan-in size
-    def variable(self, shape, f):
-        return tf.Variable(tf.random_uniform(shape, -1 / math.sqrt(f), 1 / math.sqrt(f)))
-
-
-    def print_settings(self, settings_file):
-        settings_text = ["\n\n==== from actor network ====" + "\n",
-                         "LAYER1_SIZE = " + str(LAYER1_SIZE) + "\n",
-                         "LAYER2_SIZE = " + str(LAYER2_SIZE) + "\n",
-                         "LEARNING_RATE = " + str(LEARNING_RATE) + "\n",
-                         "TAU = " + str(TAU) + "\n",
-                         "BATCH_SIZE = " + str(BATCH_SIZE) + "\n"]
-        for line in settings_text:
-            settings_file.write(line)  # print settings to file
+    #def variable(self, shape, f):
+    #    return tf.Variable(tf.random_uniform(shape, -1 / math.sqrt(f), 1 / math.sqrt(f)))

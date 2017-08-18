@@ -8,6 +8,7 @@ import math
 import os
 import sys
 import datetime
+import config
 
 import gc
 gc.enable()
@@ -24,46 +25,34 @@ import matplotlib.pyplot as plt
 # ddpg from : https://arxiv.org/pdf/1509.02971.pdf
 
 class agent_runner(object):
+    is_training = config.is_training
+    test_frequency = config.test_frequency
+    epsilon_start = config.epsilon_start
+    episode_count = config.episode_count
+    max_steps = config.max_steps
+    EXPLORE = config.EXPLORE
 
-    is_training = True  # TODO sys arg or config file
-    test_frequency = 20 # TODO sys arg or config file # how often to test /episodes
-    epsilon_start = 1  # TODO sys arg or config file
-    episode_count = 2000  # TODO sys arg or config file
-    max_steps = 2000  # TODO sys arg or config file
-    EXPLORE = 400000.0
+    # logging
+    log_size = config.log_size
+    log_in_file = config.log_in_file
+    log_memory = config.log_memory
 
-    log_size = 100 # number of episodes per log
-    log_in_file = True
+    # Gym_torcs / ENV
+    vision = config.vision
+    throttle = config.throttle
+    gear_change = config.gear_change
+    safety_critic = config.safety_critic
+
+    state_dim = config.state_dim
+    action_dim = config.action_dim
 
     # initial values
+    total_steps = 0  # total nr of steps over all episodes
     best_training_reward = -math.inf  # best training reward over all episodes and steps
     best_testing_reward = -math.inf
-
-    total_steps = 0 # total nr of steps over all episodes
     start_time = None
     done = False
     epsilon = epsilon_start
-
-    # Gym_torcs
-    vision = False
-    throttle = True
-    gear_change = False #False = drive only on first gear, limited to 80 km/h
-    safety_critic = True  # false = normal ddpg, True = double critic
-
-
-    # 1. original sensors!!!
-    state_dim = 29
-
-    # 2. realistic sensors!! (vithout vision)
-    #state_dim = 89
-
-    # 3. combo! for driving without vision, but close to realistic!
-    #state_dim = 90
-
-    # 4. combo! same as 3 but without focus sensor!!!
-    #state_dim = 85
-
-    action_dim = 3
 
     env = None
     agent = None
@@ -90,21 +79,19 @@ class agent_runner(object):
             sys.stdout = self.log
 
         # Generate a Torcs environment
+        print("1. Creating ENV with: vision=" + str(self.vision) + ", throttle=" + str(self.throttle) + ", gear_change=" + str(self.gear_change))
         self.env = TorcsEnv(vision=self.vision, throttle=self.throttle, gear_change=self.gear_change)
-        print("1. Env is created! with: vision="+str(self.vision) + ", throttle=" + str(self.throttle) +", gear_change=" + str(self.gear_change))
 
         # Create agent
+        print("2. Creating Agent with state_dim=" + str(self.state_dim) + ", action_dim=" + str(self.action_dim))
         self.agent = Agent(env_name="TORCS", state_dim=self.state_dim, action_dim=self.action_dim, safety_critic=self.safety_critic)
-        print("2. Agent is created! with state_dim=" + str(self.state_dim) + ", action_dim=" + str(self.action_dim))
 
-        # create a settings file ( only for saving setting, not for applying settings!!!!
-        self.settings_file = open(self.folder_name + "/" + "settings", "a")
 
-        self.print_settings(settings_file=self.settings_file)  # print settings from runfile
-        self.agent.print_settings(settings_file=self.settings_file)  # print settings from agent
-        self.print_commits() # add vesrion / commit files to run folder!
+        # Save a settings file
+        os.system("cp ./config.py " + self.folder_name.replace(" ", "\ ") + "/")
 
-        self.settings_file.close()
+        # Sve which commit this run is based on
+        self.print_commits()
 
         self.result = results(folder=self.folder_name)
 
@@ -123,9 +110,7 @@ class agent_runner(object):
             total_reward_old = 0. # for old reward function!
 
             # train_indicator is equal to is_training but set to false when testing every 20th episode!
-            #train_indicator = (self.is_training and not((episode > 10) and (episode % 20 == 0)))
             train_indicator = (self.is_training and not ((not episode == 0) and (episode % self.test_frequency == 0)))
-            #train_indicator = (self.is_training and not episode % self.test_frequency == 0) # testing at ep=0, sets base reward!!
 
             ### Initialize a random process N for action exploration
             #Done in ddpg_agent constructor... OU
@@ -134,7 +119,7 @@ class agent_runner(object):
             early_stop = self.do_early_stop(epsilon=self.epsilon, train_indicator=train_indicator)
 
             ### Receive initial observation state s_t
-            # relaunch TORCS every 5 episode because of the memory leak error
+            # relaunch TORCS every 6 episode because of the memory leak error
             ob = self.env.reset(relaunch=((episode % 6) == 0))
             s_t = self.create_state(ob)
 
@@ -155,11 +140,6 @@ class agent_runner(object):
                 # 2. send that action to the environment and observe rt and new state
                 ob, r_t, done, info = self.env.step(a_t, early_stop)
                 s_t1 = self.create_state(ob) # next state, after action a_t
-
-                # Cheking for nan rewards
-                #if (math.isnan(r_t)):
-                #    r_t = 0.0
-                #    print('NAN reward <===========================================================================')
 
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
@@ -203,11 +183,11 @@ class agent_runner(object):
             # add result to result saver! when testing #TODO remember to chang in result_instpecter if this is changed!
             self.result.add(row=[episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop, ob['damage']])
 
-            if(episode % 10 == 0) :
+            if(episode % 25 == 0) :
                 self.result.save()
                 # do some end of ep printing in regular terminal so its easier to see if running!
                 if(self.log_in_file): self.log.flush()
-                self.print_memory(episode=episode)
+                if(self.log_memory): self.print_memory(episode=episode)
 
 
 
@@ -215,21 +195,6 @@ class agent_runner(object):
         ### end for end of all episodes!
         self.finish()
 
-
-    def print_settings(self, settings_file):
-        settings_text = ["==== from runfile ====" + "\n",
-                        "is_training = " + str(self.is_training) + "\n",
-                         "epsilon_start = " + str(self.epsilon_start) + "\n",
-                         "episode_count = " + str(self.episode_count) + "\n",
-                         "max_steps = " + str(self.max_steps) + "\n",
-                         "vision = " + str(self.vision) + "\n",
-                         "throttle = " + str(self.throttle) + "\n",
-                         "gear_change = " + str(self.gear_change) + "\n",
-                         "safety_critic = " + str(self.safety_critic) + "\n",
-                         "state_dim = " + str(self.state_dim) + "\n",
-                         "action_dim = " + str(self.action_dim)]
-        for line in settings_text:
-            settings_file.write(line)  # print settings to file
 
     def print_commits(self):
         # get version / commit of current folder/gym_torcs

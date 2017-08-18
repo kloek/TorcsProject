@@ -1,12 +1,13 @@
 import tensorflow as tf
 import numpy as np
 import math
+import config
 
-LAYER1_SIZE = 300
-LAYER2_SIZE = 600
-LEARNING_RATE = 1e-3
-TAU = 0.001
-L2 = 0.0001
+LAYER1_SIZE = config.C_LAYER1_SIZE
+LAYER2_SIZE = config.C_LAYER2_SIZE
+LEARNING_RATE = config.C_LEARNING_RATE
+TAU = config.C_TAU
+L2 = config.C_L2
 
 
 class Critic:
@@ -20,12 +21,15 @@ class Critic:
         self.action_input, \
         self.q_value_output, \
         self.net = self.create_q_network(state_dim, action_dim)
+        print("Critic network = " + str(self.net))
 
         # create target q network (the same structure with q network)
         self.target_state_input, \
         self.target_action_input, \
         self.target_q_value_output, \
-        self.target_update = self.create_target_q_network(state_dim, action_dim, self.net)
+        self.target_update, \
+        self.target_net = self.create_target_q_network(state_dim, action_dim, self.net)
+        print("Critic target_network = " + str(self.target_net))
 
         self.create_training_method()
 
@@ -83,7 +87,7 @@ class Critic:
         layer2 = tf.nn.relu(tf.matmul(layer1, target_net[2]) + tf.matmul(action_input, target_net[3]) + target_net[4])
         q_value_output = tf.identity(tf.matmul(layer2, target_net[5]) + target_net[6])
 
-        return state_input, action_input, q_value_output, target_update
+        return state_input, action_input, q_value_output, target_update, target_net
 
     def update_target(self):
         self.sess.run(self.target_update)
@@ -114,15 +118,6 @@ class Critic:
             self.action_input: action_batch})
 
     # f fan-in size
-    def variable(self, shape, f):
-        return tf.Variable(tf.random_uniform(shape, -1 / math.sqrt(f), 1 / math.sqrt(f)))
+    #def variable(self, shape, f):
+    #    return tf.Variable(tf.random_uniform(shape, -1 / math.sqrt(f), 1 / math.sqrt(f)))
 
-    def print_settings(self, settings_file):
-        settings_text = ["\n\n==== from critic network ====" + "\n",
-                         "LAYER1_SIZE = " + str(LAYER1_SIZE) + "\n",
-                         "LAYER2_SIZE = " + str(LAYER2_SIZE) + "\n",
-                         "LEARNING_RATE = " + str(LEARNING_RATE) + "\n",
-                         "TAU = " + str(TAU) + "\n",
-                         "L2 = " + str(L2) + "\n"]
-        for line in settings_text:
-            settings_file.write(line)  # print settings to file

@@ -14,6 +14,6 @@ cp -r agents $gym_torcs/agents
 rm $gym_torcs/run_ddpg.py
 cp run_ddpg.py $gym_torcs/
 
-# run file
-rm $gym_torcs/run_ddpg_cnn.py
-cp run_ddpg_cnn.py $gym_torcs/
+# config
+rm $gym_torcs/config.py
+cp config.py $gym_torcs/

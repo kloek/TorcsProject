@@ -6,6 +6,7 @@ import numpy as np
 from agents.abstract_agent import AbstractAgent
 from agents.ddpg_original.actor_network import Actor
 from agents.ddpg_original.critic_network import Critic
+import config
 
 from agents.parts.OU import OU
 from agents.parts.replay_buffer import ReplayBuffer
@@ -22,10 +23,10 @@ class Agent(AbstractAgent):
 
 
     # Hyper Parameters:
-    REPLAY_BUFFER_SIZE = 100000
-    REPLAY_START_SIZE = 100
-    BATCH_SIZE = 32 # size of minibatches to train with
-    GAMMA = 0.99    # γ discount factor for discounted future reward!
+    REPLAY_BUFFER_SIZE = config.REPLAY_BUFFER_SIZE
+    REPLAY_START_SIZE = config.REPLAY_START_SIZE
+    BATCH_SIZE = config.BATCH_SIZE
+    GAMMA = config.GAMMA
 
     actor_network = None
     critic_network = None
@@ -33,7 +34,7 @@ class Agent(AbstractAgent):
     OU = None
 
     #Construct ddpg agent
-    def __init__(self,env_name, state_dim, action_dim, safety_critic=False):
+    def __init__(self, env_name, state_dim, action_dim, safety_critic=False):
         self.state_dim = state_dim  # dimention of states e.g vision size and other sensors!
         self.action_dim = action_dim  # dimention of action e.g 3 for steering, throttle, and break
         self.safety_critic = safety_critic  # false = normal ddpg, true = safety critic test!
@@ -45,6 +46,7 @@ class Agent(AbstractAgent):
         self.sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
 
         ### Randomly initialize critic network and actor with weights θQ and θμ
+        print("creating actor and critic")
         self.actor_network = Actor(self.sess, self.state_dim, self.action_dim)
         self.critic_network = Critic(self.sess, self.state_dim, self.action_dim)
 
@@ -158,21 +160,6 @@ class Agent(AbstractAgent):
     def get_name():
         return "DDPG Original"
 
-    def print_settings(self, settings_file):
-        # 1. print settings of this agent
-        settings_text = ["\n\n==== from agent ====" + "\n",
-                         "REPLAY_BUFFER_SIZE = " + str(self.REPLAY_BUFFER_SIZE) + "\n",
-                         "REPLAY_START_SIZE = " + str(self.REPLAY_START_SIZE) + "\n",
-                         "BATCH_SIZE = " + str(self.BATCH_SIZE) + "\n",
-                         "GAMMA = " + str(self.GAMMA) + "\n"]
-        for line in settings_text:
-            settings_file.write(line)  # print settings to file
-
-        # 2. print settings of actor
-        self.actor_network.print_settings(settings_file)
-
-        # 3. print settings of critic
-        self.critic_network.print_settings(settings_file)
 
     def save_networks(self, global_step, run_folder):
         self.saver.save(self.sess, run_folder+'/saved_networks/' + self.env_name + 'network' + '-ddpg', global_step=global_step)
