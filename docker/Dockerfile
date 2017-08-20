@@ -37,8 +37,7 @@ RUN apt-get install -y xautomation \
 
 
 # Install dependecies for Python3
-RUN
-    apt-get install python3-pip \
+RUN apt-get install python3-pip \
     pip3 install gym \
     pip3 install tensorflow \
     pip3 install matplotlib \
