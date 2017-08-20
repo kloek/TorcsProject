@@ -7,7 +7,7 @@ RUN apt-get update
 #Install git and python
 RUN apt-get install -y git \
     python-dev \
-    python-pip && \
+    python-pip \
     pip install --upgrade pip
 
 #Install Keras 1.1.0
@@ -37,12 +37,12 @@ RUN apt-get install -y xautomation \
 
 
 # Install dependecies for Python3
-RUN apt-get install -y python3-pip \
-    pip3 install gym \
-    pip3 install tensorflow \
-    pip3 install matplotlib \
-    apt-get install -y python3-tk
+RUN apt-get install -y python3-pip
+RUN apt-get install -y python3-tk
 
+RUN pip3 install gym && \
+    pip3 install tensorflow && \
+    pip3 install matplotlib
 
 #Install gym_torcs
 RUN git clone https://github.com/pierg/gym_torcs.git && \
