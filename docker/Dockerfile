@@ -35,6 +35,16 @@ RUN apt-get install -y xautomation \
     pip install numpy && \
     pip install h5py
 
+
+# Install dependecies for Python3
+RUN
+    apt-get install python3-pip \
+    pip3 install gym \
+    pip3 install tensorflow \
+    pip3 install matplotlib \
+    apt-get install -y python3-tk
+
+
 #Install gym_torcs
 RUN git clone https://github.com/pierg/gym_torcs.git && \
     cd gym_torcs/vtorcs-RL-color && \
@@ -57,7 +67,7 @@ RUN git clone https://github.com/pierg/TorcsProject.git && \
     cd ..
 
 
-#Configuring Display
+#Configuring Display and AspectJ
 RUN apt-get install -y default-jdk \
     aspectj
 

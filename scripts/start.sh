@@ -28,4 +28,5 @@ echo ""
 # start the simultation
 echo "Starting the simulation !"
 echo ""
-sudo docker exec -t $detached -e "DISPLAY=:1.0" $(sudo docker ps -lq) bash -c "python run_ddpg.py"
+#sudo docker exec -t -e "DISPLAY=:1.0" $(sudo docker ps -lq) bash -c "python run_ddpg.py"
+sudo docker exec -t -e "DISPLAY=:1.0" $(sudo docker ps -lq) bash -c "python3 run_ddpg.py"
