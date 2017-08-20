@@ -7,7 +7,7 @@ RUN apt-get update
 #Install git and python
 RUN apt-get install -y git \
     python-dev \
-    python-pip \
+    python-pip && \
     pip install --upgrade pip
 
 #Install Keras 1.1.0
