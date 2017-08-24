@@ -10,6 +10,8 @@ import sys
 import datetime
 import config
 import timeit
+from PIL import Image
+from matplotlib import pyplot as plt
 
 import gc
 gc.enable()
@@ -142,6 +144,10 @@ class agent_runner(object):
                 ob, r_t, done, info = self.env.step(a_t, early_stop)
                 s_t1 = self.create_state2(ob) # next state, after action a_t
 
+                if(episode==0 and step==10):
+                    img = Image.fromarray(ob['img'],'RGB')
+                    img.save('test.png')
+
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
                 self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, done)
@@ -216,7 +222,7 @@ class agent_runner(object):
         # print("observation=" + str(ob))
         # some numbers are scaled, se scale_observation(..) in gym_torcs
         # 1. original sensors!!!
-        s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        s_t = (np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'])), ob['img'])
 
         # 2. realistic sensors!! 5+ 36+ 19+ 1+ 1+ 1+ 4+ 1
         #s_t = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
@@ -239,7 +245,7 @@ class agent_runner(object):
         for sensor in self.sensor_list:
             stack = np.hstack((stack, ob[sensor]))
 
-        s_t = stack
+        s_t = (stack,ob['img'])
         return s_t
 
 

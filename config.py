@@ -15,15 +15,20 @@ log_in_file = True
 log_memory = False
 
     # Gym_torcs
-vision = False
+vision = True
 throttle = True
 gear_change = False #False = drive only on first gear, limited to 80 km/h
-safety_critic = True  # false = normal ddpg, True = double critic
+safety_critic = False  # false = normal ddpg, True = double critic
 
 
 # 1. original sensors!!!
 state_dim = 29
 sensor_list = ['angle', 'track', 'trackPos', 'speedX', 'speedY', 'speedZ', 'wheelSpinVel', 'rpm']
+
+# same as 1 plus opponents (36 sensors)
+#state_dim = 65
+#sensor_list = ['angle', 'track', 'trackPos','opponents' 'speedX', 'speedY', 'speedZ', 'wheelSpinVel', 'rpm']
+
 
 # 2. realistic sensors!! (vithout vision)
 #state_dim = 89
