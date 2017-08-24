@@ -200,6 +200,8 @@ class agent_runner(object):
     def print_commits(self):
         # get version / commit of current folder/gym_torcs
         os.system("git log -n 1 > ./gym_torcs_version")
+        os.system("git status >> ./gym_torcs_version")
+        os.system("git diff >> ./gym_torcs_version")
         os.system("cp ./gym_torcs_version " + self.folder_name.replace(" ", "\ ") + "/gym_torcs_version")
         os.system("cp ./agent_version " + self.folder_name.replace(" ", "\ ") + "/agent_version")
 
