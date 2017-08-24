@@ -48,11 +48,13 @@ class Agent(AbstractAgent):
         ### Randomly initialize critic network and actor with weights θQ and θμ
         print("creating actor and critic")
         self.actor_network = Actor(self.sess, self.state_dim, self.action_dim)
-        self.critic_network = Critic(self.sess, self.state_dim, self.action_dim)
+        self.critic_network = Critic(self.sess, self.state_dim, self.action_dim, self.actor_network.get_num_trainable_vars())
+
+        print("tf.trainable_variables = " + str(tf.trainable_variables()))
 
         # create an extra safety critic:
         if (self.safety_critic):
-            self.safety_critic_network = Critic(self.sess, self.state_dim, self.action_dim)
+            self.safety_critic_network = Critic(self.sess, self.state_dim, self.action_dim, self.actor_network.get_num_trainable_vars())
 
         ### Initialize replay buffer R
         self.replay_buffer = ReplayBuffer(self.REPLAY_BUFFER_SIZE)
@@ -125,6 +127,7 @@ class Agent(AbstractAgent):
 
         ## Update the actor policy using the sampled gradient:
         action_batch_for_gradients = self.actor_network.actions(state_batch)
+
         if(self.safety_critic):
             q_gradient_batch_progress = self.critic_network.gradients(state_batch, action_batch_for_gradients)
             q_gradient_batch_penalty = self.safety_critic_network.gradients(state_batch, action_batch_for_gradients)
