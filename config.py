@@ -11,7 +11,7 @@ EXPLORE = 400000.0
 
 # Loggin related parameters
 log_size = 100 # number of episodes per log
-log_in_file = True
+log_in_file = False
 log_memory = False
 
     # Gym_torcs
@@ -49,9 +49,9 @@ action_dim = 3
 #### SETTINGS FOR DDPG_AGENT #####
 
 # Hyper Parameters:
-REPLAY_BUFFER_SIZE = 100000
+REPLAY_BUFFER_SIZE = 10000
 REPLAY_START_SIZE = 100
-BATCH_SIZE = 32  # size of minibatches to train with
+BATCH_SIZE = 8  # size of minibatches to train with
 GAMMA = 0.99  # γ discount factor for discounted future reward!
 
 

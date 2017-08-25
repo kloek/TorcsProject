@@ -178,8 +178,10 @@ class Actor:
         self.sess.run(self.target_update)
 
     def train(self, q_gradient_batch, state_batch):
-        state_batch_sens = state_batch[0]
-        state_batch_vision = state_batch[1]
+        #state_batch_sens = state_batch[0]
+        #state_batch_vision = state_batch[1]
+        state_batch_sens = np.asarray([data[0] for data in state_batch])
+        state_batch_vision = np.asarray([data[1] for data in state_batch])
         self.sess.run(self.optimizer, feed_dict={
             self.q_gradient_input: q_gradient_batch,
             self.state_input_sens: state_batch_sens,
@@ -187,8 +189,10 @@ class Actor:
         })
 
     def actions(self, state_batch):
-        state_batch_sens = state_batch[0]
-        state_batch_vision = state_batch[1]
+        #state_batch_sens = state_batch[0]
+        #state_batch_vision = state_batch[1]
+        state_batch_sens = np.asarray([data[0] for data in state_batch])
+        state_batch_vision = np.asarray([data[1] for data in state_batch])
         return self.sess.run(self.action_output, feed_dict={
             self.state_input_sens: state_batch_sens,
             self.state_input_vision: state_batch_vision
@@ -203,8 +207,8 @@ class Actor:
         })[0]
 
     def target_actions(self, state_batch):
-        state_batch_sens = state_batch[0]
-        state_batch_vision = state_batch[1]
+        state_batch_sens = np.asarray([data[0] for data in state_batch])
+        state_batch_vision = np.asarray([data[1] for data in state_batch])
         return self.sess.run(self.target_action_output, feed_dict={
             self.state_input_sens_target: state_batch_sens,
             self.state_input_vision_target: state_batch_vision

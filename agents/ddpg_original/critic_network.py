@@ -132,7 +132,7 @@ class Critic:
         layer2 = tf.nn.relu(tf.matmul(layer1, W2) + tf.matmul(action_input, W2_action) + b2, name="layer2"+ name)
         q_value_output = tf.identity(tf.matmul(layer2, W3) + b3, name="q_value_output"+ name)
 
-        return state_input_sens, state_input_vision, action_input, q_value_output, [W1_sens, b1, W2, W2_action, b2, W3, b3]
+        return state_input_sens, state_input_vision, action_input, q_value_output, [conv1, pool1, conv2, pool2, pool2_flat, W1_sens, b1, W2, W2_action, b2, W3, b3]
 
     """def create_target_q_network(self, state_dim, action_dim, net):
         state_input = tf.placeholder("float", [None, state_dim])
@@ -153,27 +153,39 @@ class Critic:
 
     def train(self, y_batch, state_batch, action_batch):
         self.time_step += 1
+        state_batch_sens = np.asarray([data[0] for data in state_batch])
+        state_batch_vision = np.asarray([data[1] for data in state_batch])
         self.sess.run(self.optimizer, feed_dict={
             self.y_input: y_batch,
-            self.state_input: state_batch,
+            self.state_input_sens: state_batch_sens,
+            self.state_input_vision: state_batch_vision,
             self.action_input: action_batch
         })
 
     def gradients(self, state_batch, action_batch):
+        state_batch_sens = np.asarray([data[0] for data in state_batch])
+        state_batch_vision = np.asarray([data[1] for data in state_batch])
         return self.sess.run(self.action_gradients, feed_dict={
-            self.state_input: state_batch,
+            self.state_input_sens: state_batch_sens,
+            self.state_input_vision: state_batch_vision,
             self.action_input: action_batch
         })[0]
 
     def target_q(self, state_batch, action_batch):
+        state_batch_sens = np.asarray([data[0] for data in state_batch])
+        state_batch_vision = np.asarray([data[1] for data in state_batch])
         return self.sess.run(self.target_q_value_output, feed_dict={
-            self.target_state_input: state_batch,
+            self.state_input_sens_target: state_batch_sens,
+            self.state_input_vision_target: state_batch_vision,
             self.target_action_input: action_batch
         })
 
     def q_value(self, state_batch, action_batch):
+        state_batch_sens = np.asarray([data[0] for data in state_batch])
+        state_batch_vision = np.asarray([data[1] for data in state_batch])
         return self.sess.run(self.q_value_output, feed_dict={
-            self.state_input: state_batch,
+            self.state_input_sens: state_batch_sens,
+            self.state_input_vision: state_batch_vision,
             self.action_input: action_batch})
 
     # f fan-in size
