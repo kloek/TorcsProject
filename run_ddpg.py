@@ -144,10 +144,6 @@ class agent_runner(object):
                 ob, r_t, done, info = self.env.step(a_t, early_stop)
                 s_t1 = self.create_state2(ob) # next state, after action a_t
 
-                if(episode==0 and step==10):
-                    img = Image.fromarray(ob['img'],'RGB')
-                    img.save('test.png')
-
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
                 self.agent.replay_buffer.add(s_t, a_t, r_t, s_t1, done)
