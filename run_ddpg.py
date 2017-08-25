@@ -125,7 +125,7 @@ class agent_runner(object):
             ### Receive initial observation state s_t
             # relaunch TORCS every 6 episode because of the memory leak error
             ob = self.env.reset(relaunch=((episode % 6) == 0))
-            s_t = self.create_state2(ob)
+            s_t = self.create_state(ob)
 
             ### for t = 1, T
             for step in range(self.max_steps):
@@ -142,7 +142,7 @@ class agent_runner(object):
 
                 # 2. send that action to the environment and observe rt and new state
                 ob, r_t, done, info = self.env.step(a_t, early_stop)
-                s_t1 = self.create_state2(ob) # next state, after action a_t
+                s_t1 = self.create_state(ob) # next state, after action a_t
 
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
