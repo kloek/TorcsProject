@@ -3,19 +3,19 @@ echo "Launch TORCS simulation"
 
 # get docker image
 echo "Pull the docker image..."
-sudo docker pull pmallozzi/torcsproject
+sudo docker pull kloek/torcsproject
 echo "...done"
 echo ""
 
 # start the virtual gui
 echo "Run the docker image..."
-sudo docker run -td pmallozzi/torcsproject Xvfb :1 -screen 0 800x600x16
+sudo docker run -td kloek/torcsproject Xvfb :1 -screen 0 800x600x16
 echo "...done"
 echo ""
 
 # update the repo
 echo "Update the repo..."
-sudo docker exec -t $(sudo docker ps -lq) git pull origin master
+sudo docker exec -t $(sudo docker ps -lq) git pull origin cnn
 echo "...done"
 echo ""
 
