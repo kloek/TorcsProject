@@ -57,8 +57,8 @@ RUN git clone https://github.com/kloek/gym_torcs.git && \
 RUN git clone https://github.com/kloek/TorcsProject.git && \
     cd TorcsProject && \
     git log -n 1 > ../gym_torcs/agent_version && \
-    git status >> ../gym_torcs/agent_version
-    git diff >> ../gym_torcs/agent_version
+    git status >> ../gym_torcs/agent_version && \
+    git diff >> ../gym_torcs/agent_version && \
     rm -rf ../gym_torcs/agents && \
     cp -r agents ../gym_torcs/agents && \
     rm -rf ../gym_torcs/run_ddpg.py && \
