@@ -27,6 +27,7 @@ class Agent(AbstractAgent):
     REPLAY_START_SIZE = config.REPLAY_START_SIZE
     BATCH_SIZE = config.BATCH_SIZE
     GAMMA = config.GAMMA
+    SAFETY_GAMMA = config.SAFETY_GAMMA
 
     actor_network = None
     critic_network = None
@@ -111,7 +112,7 @@ class Agent(AbstractAgent):
         # Calculate y_batch
         if(self.safety_critic):
             y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1, gamma=self.GAMMA)
-            y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, gamma=self.GAMMA)
+            y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, gamma=self.SAFETY_GAMMA)
         else:
             y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0, gamma=self.GAMMA)
             #y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3, gamma=self.GAMMA)
