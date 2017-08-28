@@ -24,6 +24,7 @@ class Agent(AbstractAgent):
     REPLAY_START_SIZE = config.REPLAY_START_SIZE
     BATCH_SIZE = config.BATCH_SIZE
     GAMMA = config.GAMMA
+    SAFETY_GAMMA = config.SAFETY_GAMMA
 
     actor_network = None
     critic_network = None
@@ -109,7 +110,7 @@ class Agent(AbstractAgent):
         # Update critic by minimizing the loss L
         if(self.safety_critic):
             y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1, gamma=self.GAMMA)
-            y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, gamma=self.GAMMA)
+            y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, gamma=self.SAFETY_GAMMA)
             self.critic_network.train(y_batch_progress, state_batch, action_batch)
             self.safety_critic_network.train(y_batch_penalty, state_batch, action_batch)
         else:
@@ -121,8 +122,12 @@ class Agent(AbstractAgent):
         if(self.safety_critic):
             q_gradient_batch_progress = self.critic_network.gradients(state_batch, action_batch_for_gradients)
             q_gradient_batch_penalty = self.safety_critic_network.gradients(state_batch, action_batch_for_gradients)
-            self.actor_network.train(q_gradient_batch_progress, state_batch)
-            self.actor_network.train(q_gradient_batch_penalty, state_batch)
+
+            # calculate the mean of q_batches from progress an penalty! (safety critic v2)
+            q_gradient_batch_mean = np.mean([np.asarray(q_gradient_batch_progress), np.asarray(q_gradient_batch_penalty)], axis=0)
+
+            # train using mean batch (safety critic v2)
+            self.actor_network.train(q_gradient_batch_mean, state_batch)
         else:
             q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
             self.actor_network.train(q_gradient_batch, state_batch)
