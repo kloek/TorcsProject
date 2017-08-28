@@ -10,6 +10,8 @@ import sys
 import datetime
 import config
 import timeit
+from PIL import Image
+from matplotlib import pyplot as plt
 
 import gc
 gc.enable()
@@ -123,7 +125,7 @@ class agent_runner(object):
             ### Receive initial observation state s_t
             # relaunch TORCS every 6 episode because of the memory leak error
             ob = self.env.reset(relaunch=((episode % 6) == 0))
-            s_t = self.create_state2(ob)
+            s_t = self.create_state(ob)
 
             ### for t = 1, T
             for step in range(self.max_steps):
@@ -140,7 +142,7 @@ class agent_runner(object):
 
                 # 2. send that action to the environment and observe rt and new state
                 ob, r_t, done, info = self.env.step(a_t, early_stop)
-                s_t1 = self.create_state2(ob) # next state, after action a_t
+                s_t1 = self.create_state(ob) # next state, after action a_t
 
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
@@ -216,7 +218,7 @@ class agent_runner(object):
         # print("observation=" + str(ob))
         # some numbers are scaled, se scale_observation(..) in gym_torcs
         # 1. original sensors!!!
-        s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        s_t = (np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'])), ob['img'])
 
         # 2. realistic sensors!! 5+ 36+ 19+ 1+ 1+ 1+ 4+ 1
         #s_t = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
@@ -239,7 +241,7 @@ class agent_runner(object):
         for sensor in self.sensor_list:
             stack = np.hstack((stack, ob[sensor]))
 
-        s_t = stack
+        s_t = (stack,ob['img'])
         return s_t
 
 

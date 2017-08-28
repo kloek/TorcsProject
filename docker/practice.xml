@@ -32,7 +32,7 @@
     <attstr name="type" val="practice"/>
     <attstr name="starting order" val="drivers list"/>
     <attstr name="restart" val="yes"/>
-    <attstr name="display mode" val="results only"/>
+    <attstr name="display mode" val="normal"/>
     <attstr name="display results" val="yes"/>
     <attnum name="distance" unit="km" val="0"/>
     <section name="Starting Grid">

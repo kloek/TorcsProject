@@ -12,19 +12,24 @@ EXPLORE = 400000.0
 # Loggin related parameters
 RUN_FOLDER = "Anton/runs/" # added to ~/
 log_size = 100 # number of episodes per log
-log_in_file = True
+log_in_file = False
 log_memory = False
 
     # Gym_torcs
-vision = False
+vision = True
 throttle = True
 gear_change = False #False = drive only on first gear, limited to 80 km/h
-safety_critic = True  # false = normal ddpg, True = double critic
+safety_critic = False  # false = normal ddpg, True = double critic
 
 
 # 1. original sensors!!!
 state_dim = 29
 sensor_list = ['angle', 'track', 'trackPos', 'speedX', 'speedY', 'speedZ', 'wheelSpinVel', 'rpm']
+
+# same as 1 plus opponents (36 sensors)
+#state_dim = 65
+#sensor_list = ['angle', 'track', 'trackPos','opponents' 'speedX', 'speedY', 'speedZ', 'wheelSpinVel', 'rpm']
+
 
 # 2. realistic sensors!! (vithout vision)
 #state_dim = 89
@@ -45,24 +50,24 @@ action_dim = 3
 #### SETTINGS FOR DDPG_AGENT #####
 
 # Hyper Parameters:
-REPLAY_BUFFER_SIZE = 100000
+REPLAY_BUFFER_SIZE = 10000
 REPLAY_START_SIZE = 100
-BATCH_SIZE = 32  # size of minibatches to train with
+BATCH_SIZE = 8  # size of minibatches to train with
 GAMMA = 0.99  # γ discount factor for discounted future reward!
 
 
 #### SETTINGS FOR ACTOR #####
 
 # Hyper Parameters
-A_LAYER1_SIZE = 300
-A_LAYER2_SIZE = 400
+A_LAYER1_SIZE = 1500
+A_LAYER2_SIZE = 2000
 A_LEARNING_RATE = 1e-4
 A_TAU = 0.001
 
 ##### SETTINGS FOR CRITC #####
 
-C_LAYER1_SIZE = 300
-C_LAYER2_SIZE = 600
+C_LAYER1_SIZE = 1500
+C_LAYER2_SIZE = 3000
 C_LEARNING_RATE = 1e-3
 C_TAU = 0.001
 C_L2 = 0.0001

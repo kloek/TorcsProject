@@ -15,7 +15,7 @@ echo ""
 
 # update the repo
 echo "Update the repo..."
-sudo docker exec -t $(sudo docker ps -lq) git pull origin master
+sudo docker exec -t $(sudo docker ps -lq) git pull origin cnn
 echo "...done"
 echo ""
 
