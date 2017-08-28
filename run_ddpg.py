@@ -92,7 +92,7 @@ class agent_runner(object):
         # Save a settings file
         os.system("cp ./config.py " + self.folder_name.replace(" ", "\ ") + "/")
 
-        # Sve which commit this run is based on
+        # Save which commit this run is based on
         self.print_commits()
 
         self.result = results(folder=self.folder_name)
