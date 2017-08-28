@@ -15,9 +15,6 @@ from agents.parts.replay_buffer import ReplayBuffer
 # Notes for readability: comments with tripple sharp (###) is the main steps of ddpg algorithm
 # ddpg from : https://arxiv.org/pdf/1509.02971.pdf
 
-
-
-
 class Agent(AbstractAgent):
 
 
@@ -109,19 +106,15 @@ class Agent(AbstractAgent):
         # for action_dim = 1
         action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
 
-        # Calculate y_batch
+        # Calculate y_batch and 
+        # Update critic by minimizing the loss L
         if(self.safety_critic):
             y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1, gamma=self.GAMMA)
             y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, gamma=self.SAFETY_GAMMA)
-        else:
-            y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0, gamma=self.GAMMA)
-            #y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3, gamma=self.GAMMA)
-
-        # Update critic by minimizing the loss L
-        if(self.safety_critic):
             self.critic_network.train(y_batch_progress, state_batch, action_batch)
             self.safety_critic_network.train(y_batch_penalty, state_batch, action_batch)
         else:
+            y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0, gamma=self.GAMMA)
             self.critic_network.train(y_batch_reward, state_batch, action_batch)
 
         ## Update the actor policy using the sampled gradient:

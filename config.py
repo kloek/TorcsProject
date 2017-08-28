@@ -10,6 +10,7 @@ EXPLORE = 400000.0
 
 
 # Loggin related parameters
+RUN_FOLDER = "Anton/runs/" # added to ~/
 log_size = 100 # number of episodes per log
 log_in_file = True
 log_memory = False
