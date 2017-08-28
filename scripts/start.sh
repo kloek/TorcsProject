@@ -15,7 +15,7 @@ echo ""
 
 # update the repo
 echo "Update the repo..."
-sudo docker exec -t $(sudo docker ps -lq) git pull origin safety_critic_v3
+sudo docker exec -t $(sudo docker ps -lq) git pull origin master
 echo "...done"
 echo ""
 
