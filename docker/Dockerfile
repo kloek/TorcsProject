@@ -11,11 +11,11 @@ RUN apt-get install -y git \
     pip install --upgrade pip
 
 #Install Keras 1.1.0
-#RUN pip install https://github.com/fchollet/keras/tarball/1.1.0
+RUN pip install https://github.com/fchollet/keras/tarball/1.1.0
 
-#Install Tensorflow # NOT THE VERSION I USE!
-#RUN export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.10.0-cp27-none-linux_x86_64.whl && \
-#    pip install --upgrade $TF_BINARY_URL
+#Install Tensorflow
+RUN export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.10.0-cp27-none-linux_x86_64.whl && \
+    pip install --upgrade $TF_BINARY_URL
 
 #Dependencies for gym-torcs
 RUN apt-get install -y xautomation \
@@ -57,8 +57,6 @@ RUN git clone https://github.com/kloek/gym_torcs.git && \
 RUN git clone https://github.com/kloek/TorcsProject.git && \
     cd TorcsProject && \
     git log -n 1 > ../gym_torcs/agent_version && \
-    git status >> ../gym_torcs/agent_version && \
-    git diff >> ../gym_torcs/agent_version && \
     rm -rf ../gym_torcs/agents && \
     cp -r agents ../gym_torcs/agents && \
     rm -rf ../gym_torcs/run_ddpg.py && \
@@ -79,13 +77,8 @@ RUN mkdir ~/.vnc
 
 RUN echo "export DISPLAY=:1.0" >> .bashrc
 
-# export practice file with own settings..
 ADD practice.xml ~/.torcs/config/raceman
 ADD practice.xml /usr/local/share/games/torcs/config/raceman
-
-# export screen file with res settings... for running normal or with vision/cnns (64x64 res)
-ADD screen.xml ~/.torcs/config
-ADD screen.xml /usr/local/share/games/torcs/config
 
 EXPOSE 80
 ADD entrypoint.sh /
