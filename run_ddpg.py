@@ -69,7 +69,7 @@ class agent_runner(object):
 
         # create a folder in runs for saving info about the run, result, and trained nets!!
         self.start_time = datetime.datetime.now()
-        self.folder_name = os.path.expanduser("~/"+config.RUN_FOLDER+"/" + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + Agent.get_name()))
+        self.folder_name = os.path.expanduser(config.RUN_FOLDER + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + Agent.get_name()))
         os.makedirs(self.folder_name)
         os.makedirs(self.folder_name + "/saved_networks")
         os.makedirs(self.folder_name + "/logs")
