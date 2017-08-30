@@ -16,7 +16,7 @@ log_in_file = False
 log_memory = False
 
 # Gym_torcs
-vision = True
+vision = False
 throttle = True
 gear_change = False #False = drive only on first gear, limited to 80 km/h
 safety_critic = False  # false = normal ddpg, True = double critic
