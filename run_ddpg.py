@@ -69,7 +69,7 @@ class agent_runner(object):
 
         # create a folder in runs for saving info about the run, result, and trained nets!!
         self.start_time = datetime.datetime.now()
-        self.folder_name = "runs/" + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + Agent.get_name())
+        self.folder_name = os.path.expanduser(config.RUN_FOLDER + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + Agent.get_name()))
         os.makedirs(self.folder_name)
         os.makedirs(self.folder_name + "/saved_networks")
         os.makedirs(self.folder_name + "/logs")
@@ -77,7 +77,7 @@ class agent_runner(object):
         #redirect stdout to log file instead
         if(self.log_in_file):
             self.old_stdout = sys.stdout
-            self.log = open(self.folder_name+"/logs/init.log","a")
+            self.log = open("{0}/logs/init.log".format(self.folder_name), "a")
             sys.stdout = self.log
 
         # Generate a Torcs environment
@@ -92,7 +92,7 @@ class agent_runner(object):
         # Save a settings file
         os.system("cp ./config.py " + self.folder_name.replace(" ", "\ ") + "/")
 
-        # Sve which commit this run is based on
+        # Save which commit this run is based on
         self.print_commits()
 
         self.result = results(folder=self.folder_name)
@@ -200,6 +200,8 @@ class agent_runner(object):
     def print_commits(self):
         # get version / commit of current folder/gym_torcs
         os.system("git log -n 1 > ./gym_torcs_version")
+        os.system("git status >> ./gym_torcs_version")
+        os.system("git diff >> ./gym_torcs_version")
         os.system("cp ./gym_torcs_version " + self.folder_name.replace(" ", "\ ") + "/gym_torcs_version")
         os.system("cp ./agent_version " + self.folder_name.replace(" ", "\ ") + "/agent_version")
 
@@ -249,7 +251,7 @@ class agent_runner(object):
     # everything that should be done at end of run!
     def finish(self):
         # add finished to the run folder!
-        os.system("mv " + self.folder_name.replace(" ", "\ ")  + " " + (self.folder_name+" FINISHED").replace(" ", "\ "))
+        os.system("mv " + self.folder_name.replace(" ", "\ ")  + " " + (self.folder_name.replace(" ", "\ ")+"_FINISHED"))
         self.env.end()  # This is for shutting down TORCS
         print("Run finnished at : " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 

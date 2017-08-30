@@ -10,8 +10,9 @@ EXPLORE = 400000.0
 
 
 # Loggin related parameters
+RUN_FOLDER = "runs/" # use if ~/ outside gymtorcs folder
 log_size = 100 # number of episodes per log
-log_in_file = True
+log_in_file = False
 log_memory = False
 
     # Gym_torcs
@@ -48,6 +49,7 @@ REPLAY_BUFFER_SIZE = 100000
 REPLAY_START_SIZE = 100
 BATCH_SIZE = 32  # size of minibatches to train with
 GAMMA = 0.99  # γ discount factor for discounted future reward!
+SAFETY_GAMMA = 0.9 # γ discount for penaltys only
 
 
 #### SETTINGS FOR ACTOR #####

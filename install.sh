@@ -5,6 +5,8 @@ TorcsProjectVersion="TorcsProjectVersion"
 
 # version / commit installed
 git log -n 1 > $gym_torcs/agent_version
+git status >> $gym_torcs/agent_version
+git diff >> $gym_torcs/agent_version
 
 # agents folder
 rm -rf $gym_torcs/agents

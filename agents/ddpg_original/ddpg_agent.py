@@ -15,9 +15,6 @@ from agents.parts.replay_buffer import ReplayBuffer
 # Notes for readability: comments with tripple sharp (###) is the main steps of ddpg algorithm
 # ddpg from : https://arxiv.org/pdf/1509.02971.pdf
 
-
-
-
 class Agent(AbstractAgent):
 
 
@@ -27,6 +24,7 @@ class Agent(AbstractAgent):
     REPLAY_START_SIZE = config.REPLAY_START_SIZE
     BATCH_SIZE = config.BATCH_SIZE
     GAMMA = config.GAMMA
+    SAFETY_GAMMA = config.SAFETY_GAMMA
 
     actor_network = None
     critic_network = None
@@ -108,28 +106,28 @@ class Agent(AbstractAgent):
         # for action_dim = 1
         action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
 
-        # Calculate y_batch
-        y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0, gamma=self.GAMMA)
-        y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1, gamma=self.GAMMA)
-        y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, gamma=self.GAMMA)
-        #y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3, gamma=self.GAMMA)
-
+        # Calculate y_batch and 
         # Update critic by minimizing the loss L
         if(self.safety_critic):
+            y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1, gamma=self.GAMMA)
+            y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, gamma=self.SAFETY_GAMMA)
             self.critic_network.train(y_batch_progress, state_batch, action_batch)
             self.safety_critic_network.train(y_batch_penalty, state_batch, action_batch)
         else:
+            y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0, gamma=self.GAMMA)
             self.critic_network.train(y_batch_reward, state_batch, action_batch)
 
-        # Update the actor policy using the sampled gradient:
+        ## Update the actor policy using the sampled gradient:
         action_batch_for_gradients = self.actor_network.actions(state_batch)
-        #q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
-
         if(self.safety_critic):
             q_gradient_batch_progress = self.critic_network.gradients(state_batch, action_batch_for_gradients)
             q_gradient_batch_penalty = self.safety_critic_network.gradients(state_batch, action_batch_for_gradients)
-            self.actor_network.train(q_gradient_batch_progress, state_batch)
-            self.actor_network.train(q_gradient_batch_penalty, state_batch)
+
+            # calculate the mean of q_batches from progress an penalty! (safety critic v2)
+            q_gradient_batch_mean = np.mean([np.asarray(q_gradient_batch_progress), np.asarray(q_gradient_batch_penalty)], axis=0)
+
+            # train using mean batch (safety critic v2)
+            self.actor_network.train(q_gradient_batch_mean, state_batch)
         else:
             q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
             self.actor_network.train(q_gradient_batch, state_batch)
