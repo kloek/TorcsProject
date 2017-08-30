@@ -4,8 +4,8 @@
 is_training = True  # False just gives testrunns
 test_frequency = 20 # how often to test /episodes
 epsilon_start = 1  # TODO sys arg or config file
-episode_count = 2000  # TODO sys arg or config file
-max_steps = 2000  # TODO sys arg or config file
+episode_count = 1  # TODO sys arg or config file
+max_steps = 500  # TODO sys arg or config file
 EXPLORE = 400000.0
 
 
@@ -15,15 +15,16 @@ log_size = 100 # number of episodes per log
 log_in_file = False
 log_memory = False
 
-    # Gym_torcs
-vision = False
+# Gym_torcs
+vision = True
 throttle = True
 gear_change = False #False = drive only on first gear, limited to 80 km/h
-safety_critic = True  # false = normal ddpg, True = double critic
+safety_critic = False  # false = normal ddpg, True = double critic
 
 
 # 1. original sensors!!!
 state_dim = 29
+## to be able to set sensors from config create state has to be replaced with create state2, but that one is abit slower!!!!
 sensor_list = ['angle', 'track', 'trackPos', 'speedX', 'speedY', 'speedZ', 'wheelSpinVel', 'rpm']
 
 # 2. realistic sensors!! (vithout vision)

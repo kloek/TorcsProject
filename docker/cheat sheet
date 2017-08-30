@@ -1,0 +1,26 @@
+
+# Display all docker processes belonging to kloek/torcsproject
+sudo docker ps -a -f "ancestor=kloek/torcsproject"
+
+# kill
+sudo docker stop $(sudo docker ps -q -f "ancestor=kloek/torcsproject")
+
+# remove
+sudo docker rm $(sudo docker ps -a -q -f "ancestor=kloek/torcsproject")
+
+
+
+# list of images locally on the computer
+docker images
+
+
+
+# to enter in one of the containers:
+docker exec -it [container id] bash
+
+exit to exit from the container
+
+# to get the results out of the container and in the machine you can use:
+sudo docker cp [container id]:[folder in the container] [folder in the host machine]
+
+Ex: sudo docker cp cfbe2d47735f:rl_monitor/results ~/results

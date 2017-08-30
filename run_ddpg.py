@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from gym_torcs import TorcsEnv
-from agents.ddpg_original.ddpg_agent import Agent
 import numpy as np
 import random
 import math
@@ -10,6 +9,11 @@ import sys
 import datetime
 import config
 import timeit
+
+if config.vision:
+    from agents.ddpg_cnn.ddpg_agent import Agent
+else:
+    from agents.ddpg_original.ddpg_agent import Agent
 
 import gc
 gc.enable()
@@ -123,7 +127,7 @@ class agent_runner(object):
             ### Receive initial observation state s_t
             # relaunch TORCS every 6 episode because of the memory leak error
             ob = self.env.reset(relaunch=((episode % 6) == 0))
-            s_t = self.create_state2(ob)
+            s_t = self.create_state(ob)
 
             ### for t = 1, T
             for step in range(self.max_steps):
@@ -140,7 +144,7 @@ class agent_runner(object):
 
                 # 2. send that action to the environment and observe rt and new state
                 ob, r_t, done, info = self.env.step(a_t, early_stop)
-                s_t1 = self.create_state2(ob) # next state, after action a_t
+                s_t1 = self.create_state(ob) # next state, after action a_t
 
 
                 ### Store transition (st,at,rt,st+1) in ReplayBuffer
@@ -216,19 +220,23 @@ class agent_runner(object):
         # print("observation=" + str(ob))
         # some numbers are scaled, se scale_observation(..) in gym_torcs
         # 1. original sensors!!!
-        s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
+        stack = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm']))
 
         # 2. realistic sensors!! 5+ 36+ 19+ 1+ 1+ 1+ 4+ 1
-        #s_t = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
+        #stack = np.hstack((ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
 
         # 3. combo! for driving without vision, but close to realistic!
-        #s_t = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
+        #stack = np.hstack((ob['angle'],ob['track'], ob['trackPos'], ob['focus'], ob['opponents'], ob['track'], ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear']/6))
 
 
         # 4. combo! for driving without vision, but close to realistic, removed focus as that sensor is not reliable!!!
-        #s_t = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['opponents'], ob['track'],
+        #stack = np.hstack((ob['angle'], ob['track'], ob['trackPos'], ob['opponents'], ob['track'],
                          #ob['speedX'], ob['speedY'], ob['speedZ'], ob['wheelSpinVel'], ob['rpm'], ob['gear'] / 6))
 
+        if(self.vision):
+            s_t = (stack,ob['img'])
+        else:
+            s_t = stack
         # print("s_t.shape=" + str(s_t.shape))
         return s_t
 
@@ -239,7 +247,10 @@ class agent_runner(object):
         for sensor in self.sensor_list:
             stack = np.hstack((stack, ob[sensor]))
 
-        s_t = stack
+        if (self.vision):
+            s_t = (stack, ob['img'])
+        else:
+            s_t = stack
         return s_t
 
 
@@ -255,7 +266,8 @@ class agent_runner(object):
         self.env.end()  # This is for shutting down TORCS
         print("Run finnished at : " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-        sys.stdout = self.old_stdout
+        if config.log_in_file:
+            sys.stdout = self.old_stdout
 
     def new_log(self, episode):
         self.log = open(self.folder_name + "/logs/run-"+str(episode)+".log", "a")
