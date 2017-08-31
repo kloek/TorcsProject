@@ -3,7 +3,7 @@ echo "Launch TORCS simulation"
 
 # get docker image
 echo "Pull the docker image..."
-sudo docker pull kloek/torcsproject:test
+sudo docker pull kloek/torcsproject:docker_test
 echo "...done"
 echo ""
 
