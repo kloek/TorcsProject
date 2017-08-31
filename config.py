@@ -12,7 +12,7 @@ EXPLORE = 400000.0
 # Loggin related parameters
 RUN_FOLDER = "runs/" # use if ~/ outside gymtorcs folder
 log_size = 100 # number of episodes per log
-log_in_file = False
+log_in_file = True
 log_memory = False
 
 # Gym_torcs

@@ -81,8 +81,8 @@ RUN echo "export DISPLAY=:1.0" >> .bashrc
 ADD practice.xml ~/.torcs/config/raceman
 ADD practice.xml /usr/local/share/games/torcs/config/raceman
 
-ADD screen.xml ~/.torcs/config
-ADD screen.xml /usr/local/share/games/torcs/config
+#ADD screen.xml ~/.torcs/config
+#ADD screen.xml /usr/local/share/games/torcs/config
 
 EXPOSE 80
 ADD entrypoint.sh /
