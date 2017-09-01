@@ -21,7 +21,7 @@ echo ""
 
 # update the repo
 echo "Update the TorcsProject repo..."
-sudo docker exec -t $id sh -c 'cd /TorcsProject; git pull origin cnn; install.sh'
+sudo docker exec -t $id sh -c 'cd /TorcsProject; git pull origin cnn; ./install.sh'
 echo "...done"
 echo ""
 
