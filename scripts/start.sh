@@ -3,7 +3,7 @@ echo "Launch TORCS simulation"
 
 # get docker image
 echo "Pull the docker image..."
-sudo docker pull kloek/torcsproject
+sudo docker pull kloek/torcsproject:cnn
 echo "...done"
 echo ""
 
@@ -21,7 +21,7 @@ echo ""
 
 # update the repo
 echo "Update the TorcsProject repo..."
-sudo docker exec -t $id sh -c 'cd /TorcsProject; git pull origin master; install.sh'
+sudo docker exec -t $id sh -c 'cd /TorcsProject; git pull origin cnn; install.sh'
 echo "...done"
 echo ""
 
