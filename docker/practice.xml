@@ -33,9 +33,9 @@
     <attstr name="starting order" val="drivers list"/>
     <attstr name="restart" val="yes"/>
     <!-- For running without vision -->
-    <attstr name="display mode" val="results only"/>
+    <!--attstr name="display mode" val="results only"/-->
     <!-- For running with vision -->
-    <!-- attstr name="display mode" val="normal"/-->
+    <attstr name="display mode" val="normal"/>
     <attstr name="display results" val="yes"/>
     <attnum name="distance" unit="km" val="0"/>
     <section name="Starting Grid">
