@@ -10,10 +10,7 @@ import datetime
 import config
 import timeit
 
-if config.vision:
-    from agents.ddpg_cnn.ddpg_agent import Agent
-else:
-    from agents.ddpg_original.ddpg_agent import Agent
+from agents.ddpg_agent import Agent
 
 import gc
 gc.enable()

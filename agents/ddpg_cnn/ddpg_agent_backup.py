@@ -4,8 +4,8 @@ import tensorflow as tf
 import numpy as np
 
 from agents.abstract_agent import AbstractAgent
-from agents.ddpg_original.actor_network import Actor
-from agents.ddpg_original.critic_network import Critic
+from agents.ddpg_cnn.actor_network import Actor
+from agents.ddpg_cnn.critic_network import Critic
 import config
 
 from agents.parts.OU import OU
@@ -46,11 +46,14 @@ class Agent(AbstractAgent):
         ### Randomly initialize critic network and actor with weights θQ and θμ
         print("creating actor and critic")
         self.actor_network = Actor(self.sess, self.state_dim, self.action_dim)
-        self.critic_network = Critic(self.sess, self.state_dim, self.action_dim)
+        self.critic_network = Critic(self.sess, self.state_dim, self.action_dim, self.actor_network.get_num_trainable_vars())
+
+        print("tf.trainable_variables = " + str(tf.trainable_variables()))
 
         # create an extra safety critic:
         if (self.safety_critic):
-            self.safety_critic_network = Critic(self.sess, self.state_dim, self.action_dim)
+            with tf.variable_scope("Safety_critic"):
+                self.safety_critic_network = Critic(self.sess, self.state_dim, self.action_dim, self.actor_network.get_num_trainable_vars() + self.critic_network.get_num_trainable_vars())
 
         ### Initialize replay buffer R
         self.replay_buffer = ReplayBuffer(self.REPLAY_BUFFER_SIZE)
@@ -106,7 +109,7 @@ class Agent(AbstractAgent):
         # for action_dim = 1
         action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
 
-        # Calculate y_batch and 
+        # Calculate y_batch and
         # Update critic by minimizing the loss L
         if(self.safety_critic):
             y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1, gamma=self.GAMMA)

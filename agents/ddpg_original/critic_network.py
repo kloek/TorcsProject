@@ -13,7 +13,7 @@ L2 = config.C_L2
 class Critic:
     """docstring for CriticNetwork"""
 
-    def __init__(self, sess, state_dim, action_dim):
+    def __init__(self, sess, state_dim, action_dim, num_actor_vars):
         self.time_step = 0
         self.sess = sess
         # create q network

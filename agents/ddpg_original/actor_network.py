@@ -22,10 +22,16 @@ class Actor:
         self.state_input, self.action_output, self.net = self.create_network(state_dim, action_dim)
         print("Actor network = " + str(self.net))
 
+        self.network_params = tf.trainable_variables()
+        print("network_params = " + str(self.network_params))
+
         # create target actor network
         self.target_state_input, self.target_action_output, self.target_update, self.target_net = self.create_target_network(
             state_dim, action_dim, self.net)
         print("Actor target_network = " + str(self.target_net))
+
+        self.target_network_params = tf.trainable_variables()[len(self.network_params):]
+        print("target_network_params = " + str(self.target_network_params))
 
         # define training rules
         self.create_training_method()
@@ -34,6 +40,8 @@ class Actor:
 
         self.update_target()
         # self.load_network()
+
+        self.num_trainable_vars = len(self.network_params) + len(self.target_network_params)
 
     def create_training_method(self):
         self.q_gradient_input = tf.placeholder("float", [None, self.action_dim])
@@ -124,6 +132,6 @@ class Actor:
             self.target_state_input: state_batch
         })
 
-    # f fan-in size
-    #def variable(self, shape, f):
-    #    return tf.Variable(tf.random_uniform(shape, -1 / math.sqrt(f), 1 / math.sqrt(f)))
+    def get_num_trainable_vars(self):
+        return self.num_trainable_vars
+

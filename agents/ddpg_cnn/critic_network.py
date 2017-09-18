@@ -61,6 +61,8 @@ class Critic:
         # initialization
         self.sess.run(tf.initialize_all_variables())
 
+        self.num_trainable_vars = len(self.network_params) + len(self.target_network_params)
+
         self.update_target()
 
     def create_training_method(self):
@@ -187,6 +189,9 @@ class Critic:
             self.state_input_sens: state_batch_sens,
             self.state_input_vision: state_batch_vision,
             self.action_input: action_batch})
+
+    def get_num_trainable_vars(self):
+        return self.num_trainable_vars
 
     # f fan-in size
     #def variable(self, shape, f):

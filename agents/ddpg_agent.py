@@ -4,9 +4,15 @@ import tensorflow as tf
 import numpy as np
 
 from agents.abstract_agent import AbstractAgent
-from agents.ddpg_cnn.actor_network import Actor
-from agents.ddpg_cnn.critic_network import Critic
+
 import config
+if config.vision:
+    from agents.ddpg_cnn.actor_network import Actor
+    from agents.ddpg_cnn.critic_network import Critic
+
+else:
+    from agents.ddpg_original.actor_network import Actor
+    from agents.ddpg_original.critic_network import Critic
 
 from agents.parts.OU import OU
 from agents.parts.replay_buffer import ReplayBuffer
@@ -17,13 +23,12 @@ from agents.parts.replay_buffer import ReplayBuffer
 
 class Agent(AbstractAgent):
 
-
-
     # Hyper Parameters:
     REPLAY_BUFFER_SIZE = config.REPLAY_BUFFER_SIZE
     REPLAY_START_SIZE = config.REPLAY_START_SIZE
     BATCH_SIZE = config.BATCH_SIZE
     GAMMA = config.GAMMA
+    SAFETY_GAMMA = config.SAFETY_GAMMA
 
     actor_network = None
     critic_network = None
@@ -52,7 +57,7 @@ class Agent(AbstractAgent):
         # create an extra safety critic:
         if (self.safety_critic):
             with tf.variable_scope("Safety_critic"):
-                self.safety_critic_network = Critic(self.sess, self.state_dim, self.action_dim, self.actor_network.get_num_trainable_vars())
+                self.safety_critic_network = Critic(self.sess, self.state_dim, self.action_dim, self.actor_network.get_num_trainable_vars() + self.critic_network.get_num_trainable_vars())
 
         ### Initialize replay buffer R
         self.replay_buffer = ReplayBuffer(self.REPLAY_BUFFER_SIZE)
@@ -128,7 +133,7 @@ class Agent(AbstractAgent):
             # calculate the mean of q_batches from progress an penalty! (safety critic v2)
             q_gradient_batch_mean = np.mean([np.asarray(q_gradient_batch_progress), np.asarray(q_gradient_batch_penalty)], axis=0)
 
-            # train using mean batch (safety critic v2)
+            # train using mean batch (added at safety critic v2)
             self.actor_network.train(q_gradient_batch_mean, state_batch)
         else:
             q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
