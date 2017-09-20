@@ -59,7 +59,8 @@ class Critic:
         self.create_training_method()
 
         # initialization
-        self.sess.run(tf.initialize_all_variables())
+        # self.sess.run(tf.initialize_all_variables())
+        self.sess.run(tf.global_variables_initializer())
 
         self.num_trainable_vars = len(self.network_params) + len(self.target_network_params)
 

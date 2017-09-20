@@ -59,7 +59,8 @@ class Actor:
         #    state_dim, action_dim, self.net, self.conv_net)
         #print("Actor target_network = " + str(self.target_net))
 
-        self.sess.run(tf.initialize_all_variables())
+        #self.sess.run(tf.initialize_all_variables())
+        self.sess.run(tf.global_variables_initializer())
 
         # define training rules
         self.create_training_method()
@@ -143,7 +144,6 @@ class Actor:
         steer = tf.tanh(tf.matmul(layer2, W_steer) + b_steer, name="steer"+name)
         accel = tf.sigmoid(tf.matmul(layer2, W_accel) + b_accel, name="accel"+name)
         brake = tf.sigmoid(tf.matmul(layer2, W_brake) + b_brake, name="brake"+name)
-#conv1, pool1, conv2, pool2, pool2_flat,
         action_output = tf.concat([steer, accel, brake], 1, name="action_output"+name)
         return state_input_sens, state_input_vision, action_output, [conv1, pool1, conv2, pool2, pool2_flat, W1_sens, b1, W2, b2, W_steer, b_steer, W_accel, b_accel, W_brake, b_brake]
 
@@ -178,8 +178,6 @@ class Actor:
         self.sess.run(self.target_update)
 
     def train(self, q_gradient_batch, state_batch):
-        #state_batch_sens = state_batch[0]
-        #state_batch_vision = state_batch[1]
         state_batch_sens = np.asarray([data[0] for data in state_batch])
         state_batch_vision = np.asarray([data[1] for data in state_batch])
         self.sess.run(self.optimizer, feed_dict={
@@ -189,8 +187,6 @@ class Actor:
         })
 
     def actions(self, state_batch):
-        #state_batch_sens = state_batch[0]
-        #state_batch_vision = state_batch[1]
         state_batch_sens = np.asarray([data[0] for data in state_batch])
         state_batch_vision = np.asarray([data[1] for data in state_batch])
         return self.sess.run(self.action_output, feed_dict={
@@ -216,7 +212,3 @@ class Actor:
 
     def get_num_trainable_vars(self):
         return self.num_trainable_vars
-
-    # f fan-in size
-    #def variable(self, shape, f):
-    #    return tf.Variable(tf.random_uniform(shape, -1 / math.sqrt(f), 1 / math.sqrt(f)))
