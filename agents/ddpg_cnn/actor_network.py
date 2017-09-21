@@ -23,21 +23,23 @@ class Actor:
         self.state_input_sens, \
         self.state_input_vision, \
         self.action_output, \
-        self.net = self.create_network(self.state_dim_sens, self.state_dim_vision, action_dim, "_actor")
-        print("Actor network = " + str(self.net))
+        self.net = self.create_network(self.state_dim_sens, self.state_dim_vision, action_dim, "_actor", False)
+        print("\nActor network = \n" + str("\n".join([str(x) for x in self.net])))
 
-        self.network_params = tf.trainable_variables()
-        print("network_params = " + str(self.network_params))
+        #self.network_params = tf.trainable_variables()
+        self.network_params = tf.contrib.framework.get_trainable_variables(scope="convlayer") + tf.contrib.framework.get_trainable_variables(scope="fc_actor")
+        print("\nnetwork_params = \n" + str("\n".join([str(x) for x in self.network_params])))
 
         # create actor target network
         self.state_input_sens_target, \
         self.state_input_vision_target, \
         self.target_action_output, \
-        self.target_net = self.create_network(self.state_dim_sens, self.state_dim_vision, action_dim, "_actor_target")
-        print("Actor target network = " + str(self.target_net))
+        self.target_net = self.create_network(self.state_dim_sens, self.state_dim_vision, action_dim, "_actor_target", True)
+        print("\nActor target network = \n" + str("\n".join([str(x) for x in self.target_net])))
 
-        self.target_network_params = tf.trainable_variables()[len(self.network_params):]
-        print("target_network_params = " + str(self.target_network_params))
+        #self.target_network_params = tf.trainable_variables()[len(self.network_params):]
+        self.target_network_params = tf.contrib.framework.get_trainable_variables(scope="convlayer") + tf.contrib.framework.get_trainable_variables(scope="fc_actor_target")
+        print("\ntarget_network_params = \n" + str("\n".join([str(x) for x in self.target_network_params])))
 
         ## create target update!
         #ema = tf.train.ExponentialMovingAverage(decay=1 - TAU)
@@ -63,7 +65,7 @@ class Actor:
         self.sess.run(tf.global_variables_initializer())
 
         # define training rules
-        self.create_training_method()
+        self.create_training_method(name="actor")
 
         self.update_target()
         # self.load_network()
@@ -71,13 +73,14 @@ class Actor:
         self.num_trainable_vars = len(self.network_params) + len(self.target_network_params)
 
     # when implementing cnns, self.net had to be changed to self.network_params!!!
-    def create_training_method(self):
-        self.q_gradient_input = tf.placeholder("float", [None, self.action_dim])
-        self.parameters_gradients = tf.gradients(self.action_output, self.network_params, -self.q_gradient_input)
-        self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(zip(self.parameters_gradients, self.network_params))
+    def create_training_method(self,name):
+        with tf.variable_scope(name):
+            self.q_gradient_input = tf.placeholder("float", [None, self.action_dim])
+            self.parameters_gradients = tf.gradients(self.action_output, self.network_params, -self.q_gradient_input)
+            self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(zip(self.parameters_gradients, self.network_params))
 
-    def create_network(self, state_dim_sens, state_dim_vision, action_dim, name):
-        print(" === Create Network ("+name+") === ")
+    def create_network(self, state_dim_sens, state_dim_vision, action_dim, name, reuse):
+        print(" === Create Network ("+name+") === \n")
 
         #fully connected layers
         layer1_size = LAYER1_SIZE
@@ -86,60 +89,62 @@ class Actor:
         # input for image
         state_input_vision = tf.placeholder(dtype="float", shape=([None] + state_dim_vision), name="state_input_vision"+name)
 
-        #conv layer 1
-        conv1 = tf.layers.conv2d(
-            inputs=state_input_vision,
-            filters=68,
-            kernel_size=[5,5],
-            padding="same",
-            activation=tf.nn.relu,
-            name="conv1"+name)
+        with tf.variable_scope("convlayer", reuse=reuse):
+            #conv layer 1
+            conv1 = tf.layers.conv2d(
+                inputs=state_input_vision,
+                filters=68,
+                kernel_size=[5,5],
+                padding="same",
+                activation=tf.nn.relu,
+                name="conv1")
 
-        pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2,2], strides=2, name="pool1"+name)
+            pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2,2], strides=2, name="pool1")
 
-        # conv layer 2
-        conv2 = tf.layers.conv2d(
-            inputs=pool1,
-            filters=136,  # assumed double 68, since guide did double 32
-            kernel_size=[5, 5],
-            padding="same",
-            activation=tf.nn.relu,
-            name="conv2"+name)
+            # conv layer 2
+            conv2 = tf.layers.conv2d(
+                inputs=pool1,
+                filters=136,  # assumed double 68, since guide did double 32
+                kernel_size=[5, 5],
+                padding="same",
+                activation=tf.nn.relu,
+                name="conv2")
 
-        pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, name="pool2"+name)
+        pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2, name="pool2" + name)
 
         # Flatten last pool
-        flat_size = 16*16*136
-        pool2_flat = tf.reshape(pool2, [-1,flat_size])
+        flat_size = 16 * 16 * 136
+        pool2_flat = tf.reshape(pool2, [-1, flat_size])
 
+        with tf.variable_scope("fully_connected"+name):
 
-        ## Fully Connected layers!
-        # Input for sensors, not part of conv. net
-        state_input_sens = tf.placeholder("float", [None, state_dim_sens], name="state_input_sens" + name)
+            ## Fully Connected layers!
+            # Input for sensors, not part of conv. net
+            state_input_sens = tf.placeholder("float", [None, state_dim_sens], name="state_input_sens" + name)
 
-        # Layer 1
-        W1_sens = tf.Variable(tf.random_uniform([state_dim_sens, layer1_size], -1 / math.sqrt(state_dim_sens + flat_size), 1 / math.sqrt(state_dim_sens + flat_size)), name="W1_sens"+name)
-        W1_vision = tf.Variable(tf.random_uniform([flat_size, layer1_size], -1 / math.sqrt(state_dim_sens + flat_size), 1 / math.sqrt(state_dim_sens + flat_size)), name="W1_vision"+name)
-        b1 = tf.Variable(tf.random_uniform([layer1_size], -1 / math.sqrt(state_dim_sens), 1 / math.sqrt(state_dim_sens)), name="b1"+name)
+            # Layer 1
+            W1_sens = tf.Variable(tf.random_uniform([state_dim_sens, layer1_size], -1 / math.sqrt(state_dim_sens + flat_size), 1 / math.sqrt(state_dim_sens + flat_size)), name="W1_sens"+name)
+            W1_vision = tf.Variable(tf.random_uniform([flat_size, layer1_size], -1 / math.sqrt(state_dim_sens + flat_size), 1 / math.sqrt(state_dim_sens + flat_size)), name="W1_vision"+name)
+            b1 = tf.Variable(tf.random_uniform([layer1_size], -1 / math.sqrt(state_dim_sens), 1 / math.sqrt(state_dim_sens)), name="b1"+name)
 
-        # Layer 2
-        W2 = tf.Variable(tf.random_uniform([layer1_size, layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="W2"+name)
-        b2 = tf.Variable(tf.random_uniform([layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="b2"+name)
+            # Layer 2
+            W2 = tf.Variable(tf.random_uniform([layer1_size, layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="W2"+name)
+            b2 = tf.Variable(tf.random_uniform([layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="b2"+name)
 
-        # W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
-        # b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
+            # W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
+            # b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
 
-        W_steer = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_steer"+name)
-        b_steer = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_steer"+name)
+            W_steer = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_steer"+name)
+            b_steer = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_steer"+name)
 
-        W_accel = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_accel"+name)
-        b_accel = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_accel"+name)
+            W_accel = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_accel"+name)
+            b_accel = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_accel"+name)
 
-        W_brake = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_brake"+name)
-        b_brake = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_brake"+name)
+            W_brake = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_brake"+name)
+            b_brake = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_brake"+name)
 
-        layer1 = tf.nn.relu(tf.matmul(state_input_sens, W1_sens) + tf.matmul(pool2_flat, W1_vision) + b1, name="layer1"+name)
-        layer2 = tf.nn.relu(tf.matmul(layer1, W2) + b2, name="layer2"+name)
+            layer1 = tf.nn.relu(tf.matmul(state_input_sens, W1_sens) + tf.matmul(pool2_flat, W1_vision) + b1, name="layer1"+name)
+            layer2 = tf.nn.relu(tf.matmul(layer1, W2) + b2, name="layer2"+name)
 
         steer = tf.tanh(tf.matmul(layer2, W_steer) + b_steer, name="steer"+name)
         accel = tf.sigmoid(tf.matmul(layer2, W_accel) + b_accel, name="accel"+name)
