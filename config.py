@@ -4,9 +4,9 @@
 is_training = True  # False just gives testrunns
 test_frequency = 20 # how often to test /episodes
 epsilon_start = 1  # TODO sys arg or config file
-episode_count = 2000  # TODO sys arg or config file
+episode_count = 8000  # TODO sys arg or config file
 max_steps = 2000  # TODO sys arg or config file
-EXPLORE = 400000.0
+EXPLORE = 1000000.0
 
 PORT = 3102
 

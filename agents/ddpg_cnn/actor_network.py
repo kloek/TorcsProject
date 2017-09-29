@@ -6,6 +6,7 @@ import config
 # Hyper Parameters
 LAYER1_SIZE = config.A_LAYER1_SIZE
 LAYER2_SIZE = config.A_LAYER2_SIZE
+LAYER3_SIZE = config.A_LAYER2_SIZE # keep same for now
 LEARNING_RATE = config.A_LEARNING_RATE
 TAU = config.A_TAU
 
@@ -85,6 +86,7 @@ class Actor:
         #fully connected layers
         layer1_size = LAYER1_SIZE
         layer2_size = LAYER2_SIZE
+        layer3_size = LAYER3_SIZE
 
         # input for image
         state_input_vision = tf.placeholder(dtype="float", shape=([None] + state_dim_vision), name="state_input_vision"+name)
@@ -131,26 +133,28 @@ class Actor:
             W2 = tf.Variable(tf.random_uniform([layer1_size, layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="W2"+name)
             b2 = tf.Variable(tf.random_uniform([layer2_size], -1 / math.sqrt(layer1_size), 1 / math.sqrt(layer1_size)), name="b2"+name)
 
-            # W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
-            # b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
+            # Layer 3
+            W3 = tf.Variable(tf.random_uniform([layer2_size,layer3_size],-3e-3,3e-3), name="W3"+name)
+            b3 = tf.Variable(tf.random_uniform([layer3_size],-3e-3,3e-3, name="b3"+name))
 
-            W_steer = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_steer"+name)
+            W_steer = tf.Variable(tf.random_uniform([layer3_size, 1], -1e-4, 1e-4), name="W_steer"+name)
             b_steer = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_steer"+name)
 
-            W_accel = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_accel"+name)
+            W_accel = tf.Variable(tf.random_uniform([layer3_size, 1], -1e-4, 1e-4), name="W_accel"+name)
             b_accel = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_accel"+name)
 
-            W_brake = tf.Variable(tf.random_uniform([layer2_size, 1], -1e-4, 1e-4), name="W_brake"+name)
+            W_brake = tf.Variable(tf.random_uniform([layer3_size, 1], -1e-4, 1e-4), name="W_brake"+name)
             b_brake = tf.Variable(tf.random_uniform([1], -1e-4, 1e-4), name="b_brake"+name)
 
             layer1 = tf.nn.relu(tf.matmul(state_input_sens, W1_sens) + tf.matmul(pool2_flat, W1_vision) + b1, name="layer1"+name)
             layer2 = tf.nn.relu(tf.matmul(layer1, W2) + b2, name="layer2"+name)
+            layer3 = tf.nn.relu(tf.matmul(layer2, W3) + b3, name="layer3" + name)
 
-        steer = tf.tanh(tf.matmul(layer2, W_steer) + b_steer, name="steer"+name)
-        accel = tf.sigmoid(tf.matmul(layer2, W_accel) + b_accel, name="accel"+name)
-        brake = tf.sigmoid(tf.matmul(layer2, W_brake) + b_brake, name="brake"+name)
+        steer = tf.tanh(tf.matmul(layer3, W_steer) + b_steer, name="steer"+name)
+        accel = tf.sigmoid(tf.matmul(layer3, W_accel) + b_accel, name="accel"+name)
+        brake = tf.sigmoid(tf.matmul(layer3, W_brake) + b_brake, name="brake"+name)
         action_output = tf.concat([steer, accel, brake], 1, name="action_output"+name)
-        return state_input_sens, state_input_vision, action_output, [conv1, pool1, conv2, pool2, pool2_flat, W1_sens, b1, W2, b2, W_steer, b_steer, W_accel, b_accel, W_brake, b_brake]
+        return state_input_sens, state_input_vision, action_output, [conv1, pool1, conv2, pool2, pool2_flat, W1_sens, b1, W2, b2, W3, b3, W_steer, b_steer, W_accel, b_accel, W_brake, b_brake]
 
     """def create_target_network(self, state_dim, action_dim, net, conv_net):
         print(" === Create Target Network (Actor) === ")
