@@ -31,7 +31,7 @@ class Critic:
 
         #self.network_params = tf.trainable_variables()[num_actor_vars:]
         self.network_params = tf.contrib.framework.get_trainable_variables(
-            scope="convlayer") + tf.contrib.framework.get_trainable_variables(scope="fc_critic")
+            scope="convlayer_critic") + tf.contrib.framework.get_trainable_variables(scope="fully_connected_critic")
         print("\nnetwork_params = \n" + str("\n".join([str(x) for x in self.network_params])))
 
         # create target q network (the same structure with q network)
@@ -44,7 +44,7 @@ class Critic:
 
         self.target_network_params = tf.trainable_variables()[(num_actor_vars + len(self.network_params)):]
         self.target_network_params = tf.contrib.framework.get_trainable_variables(
-            scope="convlayer") + tf.contrib.framework.get_trainable_variables(scope="_critic_target")
+            scope="convlayer_critic_target") + tf.contrib.framework.get_trainable_variables(scope="fully_connected_critic_target")
         print("\ntarget_network_params = \n" + str("\n".join([str(x) for x in self.target_network_params])))
 
         # this is from the guide i used when reusing create network
@@ -91,7 +91,7 @@ class Critic:
         state_input_vision = tf.placeholder(dtype="float", shape=([None] + state_dim_vision),
                                             name="state_input_vision" + name)
 
-        with tf.variable_scope("convlayer", reuse=True):
+        with tf.variable_scope("convlayer"+name):
             # conv layer 1
             conv1 = tf.layers.conv2d(
                 inputs=state_input_vision,
