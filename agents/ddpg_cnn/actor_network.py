@@ -23,22 +23,22 @@ class Actor:
         self.state_input_sens, \
         self.state_input_vision, \
         self.action_output, \
-        self.net = self.create_network(self.state_dim_sens, self.state_dim_vision, action_dim, "_actor", False)
+        self.net = self.create_network(self.state_dim_sens, self.state_dim_vision, action_dim, "_actor")
         print("\nActor network = \n" + str("\n".join([str(x) for x in self.net])))
 
         #self.network_params = tf.trainable_variables()
-        self.network_params = tf.contrib.framework.get_trainable_variables(scope="convlayer") + tf.contrib.framework.get_trainable_variables(scope="fc_actor")
+        self.network_params = tf.contrib.framework.get_trainable_variables(scope="convlayer_actor") + tf.contrib.framework.get_trainable_variables(scope="fully_connected_actor")
         print("\nnetwork_params = \n" + str("\n".join([str(x) for x in self.network_params])))
 
         # create actor target network
         self.state_input_sens_target, \
         self.state_input_vision_target, \
         self.target_action_output, \
-        self.target_net = self.create_network(self.state_dim_sens, self.state_dim_vision, action_dim, "_actor_target", True)
+        self.target_net = self.create_network(self.state_dim_sens, self.state_dim_vision, action_dim, "_actor_target")
         print("\nActor target network = \n" + str("\n".join([str(x) for x in self.target_net])))
 
         #self.target_network_params = tf.trainable_variables()[len(self.network_params):]
-        self.target_network_params = tf.contrib.framework.get_trainable_variables(scope="convlayer") + tf.contrib.framework.get_trainable_variables(scope="fc_actor_target")
+        self.target_network_params = tf.contrib.framework.get_trainable_variables(scope="convlayer_actor_target") + tf.contrib.framework.get_trainable_variables(scope="fully_connected_actor_target")
         print("\ntarget_network_params = \n" + str("\n".join([str(x) for x in self.target_network_params])))
 
         ## create target update!
@@ -79,7 +79,7 @@ class Actor:
             self.parameters_gradients = tf.gradients(self.action_output, self.network_params, -self.q_gradient_input)
             self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(zip(self.parameters_gradients, self.network_params))
 
-    def create_network(self, state_dim_sens, state_dim_vision, action_dim, name, reuse):
+    def create_network(self, state_dim_sens, state_dim_vision, action_dim, name):
         print(" === Create Network ("+name+") === \n")
 
         #fully connected layers
@@ -89,7 +89,7 @@ class Actor:
         # input for image
         state_input_vision = tf.placeholder(dtype="float", shape=([None] + state_dim_vision), name="state_input_vision"+name)
 
-        with tf.variable_scope("convlayer", reuse=reuse):
+        with tf.variable_scope("convlayer"+name):
             #conv layer 1
             conv1 = tf.layers.conv2d(
                 inputs=state_input_vision,
