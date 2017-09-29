@@ -23,5 +23,7 @@ cp config.py $gym_torcs/
 # xml files for torcs
 cp docker/practice.xml ~/.torcs/config/raceman
 cp docker/practice.xml /usr/local/share/games/torcs/config/raceman
+cp docker/graph.xml ~/.torcs/config
+cp docker/graph.xml /usr/local/share/games/torcs/config
 cp docker/screen.xml  ~/.torcs/config
 cp docker/screen.xml  /usr/local/share/games/torcs/config
