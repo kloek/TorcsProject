@@ -8,7 +8,7 @@ import os
 import sys
 import datetime
 import config
-import timeit
+import argparse
 
 from agents.ddpg_agent import Agent
 
@@ -33,6 +33,7 @@ class agent_runner(object):
     episode_count = config.episode_count
     max_steps = config.max_steps
     EXPLORE = config.EXPLORE
+    port = config.PORT
 
     # logging
     log_size = config.log_size
@@ -69,6 +70,7 @@ class agent_runner(object):
     def __init__(self):
 
         # create a folder in runs for saving info about the run, result, and trained nets!!
+        #self.port = port
         self.start_time = datetime.datetime.now()
         self.folder_name = os.path.expanduser(config.RUN_FOLDER + self.start_time.strftime("%Y-%m-%d %H:%M:%S - " + Agent.get_name()))
         os.makedirs(self.folder_name)
@@ -82,8 +84,8 @@ class agent_runner(object):
             sys.stdout = self.log
 
         # Generate a Torcs environment
-        print("1. Creating ENV with: vision=" + str(self.vision) + ", throttle=" + str(self.throttle) + ", gear_change=" + str(self.gear_change))
-        self.env = TorcsEnv(vision=self.vision, throttle=self.throttle, gear_change=self.gear_change)
+        print("1. Creating ENV with: vision=" + str(self.vision) + ", throttle=" + str(self.throttle) + ", gear_change=" + str(self.gear_change) + ", port=" + str(self.port))
+        self.env = TorcsEnv(vision=self.vision, throttle=self.throttle, gear_change=self.gear_change, port=self.port)
 
         # Create agent
         print("2. Creating Agent with state_dim=" + str(self.state_dim) + ", action_dim=" + str(self.action_dim))
@@ -274,5 +276,6 @@ class agent_runner(object):
 if __name__ == "__main__":
     runner = agent_runner()
     runner.run_ddpg()
+
 
 

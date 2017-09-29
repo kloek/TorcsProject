@@ -8,6 +8,8 @@ episode_count = 2000  # TODO sys arg or config file
 max_steps = 2000  # TODO sys arg or config file
 EXPLORE = 400000.0
 
+PORT = 3102
+
 
 # Loggin related parameters
 RUN_FOLDER = "runs/" # use if ~/ outside gymtorcs folder
