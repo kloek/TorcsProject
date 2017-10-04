@@ -150,8 +150,14 @@ class Agent(AbstractAgent):
     def calc_y_batch(self, done_batch, minibatch, next_state_batch, reward_batch, reward_col, gamma):
         # next_action = μ'(st+1 | θ'μ')
         next_action_batch = self.actor_network.target_actions(next_state_batch)
-        # Q_values = Q'(Si+1, next_action | θ'Q)
-        q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
+
+        if(reward_col ==  0 or reward_col == 1):
+            # Q_values = Q'(Si+1, next_action | θ'Q)
+            q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
+        if(reward_col == 2 ):
+            # Q_values = Q'(Si+1, next_action | θ'Q)
+            q_value_batch = self.safety_critic_network.target_q(next_state_batch, next_action_batch)
+
         y_batch = []
         for i in range(len(minibatch)):
             if done_batch[i]:
