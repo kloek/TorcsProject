@@ -23,6 +23,8 @@ class Critic:
         self.net = self.create_q_network(state_dim, action_dim)
         print("Critic network = " + str(self.net))
 
+        self.network_params = tf.trainable_variables()[num_actor_vars:]
+
         # create target q network (the same structure with q network)
         self.target_state_input, \
         self.target_action_input, \
@@ -31,10 +33,14 @@ class Critic:
         self.target_net = self.create_target_q_network(state_dim, action_dim, self.net)
         print("Critic target_network = " + str(self.target_net))
 
+        self.target_network_params = tf.trainable_variables()[(num_actor_vars + len(self.network_params)):]
+
         self.create_training_method()
 
         # initialization
         self.sess.run(tf.initialize_all_variables())
+
+        self.num_trainable_vars = len(self.network_params) + len(self.target_network_params)
 
         self.update_target()
 
@@ -117,7 +123,6 @@ class Critic:
             self.state_input: state_batch,
             self.action_input: action_batch})
 
-    # f fan-in size
-    #def variable(self, shape, f):
-    #    return tf.Variable(tf.random_uniform(shape, -1 / math.sqrt(f), 1 / math.sqrt(f)))
+    def get_num_trainable_vars(self):
+        return self.num_trainable_vars
 
