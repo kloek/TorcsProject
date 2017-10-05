@@ -12,7 +12,7 @@ PORT = 3102
 
 
 # Loggin related parameters
-RUN_FOLDER = "runs/" # use if ~/ outside gymtorcs folder
+RUN_FOLDER = "runs/cnn/" # use if ~/ outside gymtorcs folder
 RUN_NAME = "test" # name added to runfolder
 log_size = 100 # number of episodes per log
 log_in_file = True
