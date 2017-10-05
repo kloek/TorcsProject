@@ -6,13 +6,14 @@ test_frequency = 20 # how often to test /episodes
 epsilon_start = 1  # TODO sys arg or config file
 episode_count = 2000  # TODO sys arg or config file
 max_steps = 2000  # TODO sys arg or config file
-EXPLORE = 400000.0
+EXPLORE = 300000.0
 
 PORT = 3102
 
 
 # Loggin related parameters
 RUN_FOLDER = "runs/" # use if ~/ outside gymtorcs folder
+RUN_NAME = "test" # name added to runfolder
 log_size = 100 # number of episodes per log
 log_in_file = True
 log_memory = False
@@ -21,22 +22,19 @@ log_memory = False
 vision = False
 throttle = True
 gear_change = False #False = drive only on first gear, limited to 80 km/h
-safety_critic = True  # false = normal ddpg, True = double critic
+safety_critic = False  # false = normal ddpg, True = double critic
 
 
-# 1. original sensors!!!
+# 1. original sensors!!! (no opponents)
 state_dim = 29
 ## to be able to set sensors from config create state has to be replaced with create state2, but that one is abit slower!!!!
 sensor_list = ['angle', 'track', 'trackPos', 'speedX', 'speedY', 'speedZ', 'wheelSpinVel', 'rpm']
 
-# 2. realistic sensors!! (vithout vision)
-#state_dim = 89
+# 2. realistic sensors!!! (no opponents)
+#state_dim = 27
+## to be able to set sensors from config create state has to be replaced with create state2, but that one is abit slower!!!!
+#sensor_list = ['track', 'speedX', 'speedY', 'speedZ', 'wheelSpinVel', 'rpm']
 
-# 3. combo! for driving without vision, but close to realistic!
-#state_dim = 90
-
-# 4. combo! same as 3 but without focus sensor!!!
-#state_dim = 85
 
 
 """names = ['angle','curLapTime','damage','distFromStart','distRaced','focus','fuel','gear','lastLapTime','opponents','racePos',

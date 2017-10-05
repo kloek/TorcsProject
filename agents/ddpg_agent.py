@@ -147,6 +147,7 @@ class Agent(AbstractAgent):
         if(self.safety_critic):
             self.safety_critic_network.update_target()
 
+
     def calc_y_batch(self, done_batch, minibatch, next_state_batch, reward_batch, reward_col, gamma):
         # next_action = μ'(st+1 | θ'μ')
         next_action_batch = self.actor_network.target_actions(next_state_batch)
