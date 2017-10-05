@@ -22,7 +22,9 @@ log_memory = False
 vision = False
 throttle = True
 gear_change = False #False = drive only on first gear, limited to 80 km/h
-safety_critic = False  # false = normal ddpg, True = double critic
+
+safety_critic = True  # false = normal ddpg, True = double critic
+SC_VERSION = 1
 
 
 # 1. original sensors!!! (no opponents)

@@ -29,6 +29,7 @@ class Agent(AbstractAgent):
     BATCH_SIZE = config.BATCH_SIZE
     GAMMA = config.GAMMA
     SAFETY_GAMMA = config.SAFETY_GAMMA
+    SC_VERSION = config.SC_VERSION
 
     actor_network = None
     critic_network = None
@@ -96,6 +97,69 @@ class Agent(AbstractAgent):
         return action
 
     def train(self):
+        if(self.SC_VERSION == 1):
+            self.train_sc1()
+        elif(self.SC_VERSION == 2):
+            self.train_sc2()
+
+    def train_sc1(self):
+
+        ### Sample a random minibatch of N (BATCH_SIZE) transitions (s_i, a_i, r_i, s_i+1) from ReplayBuffer
+        # print "train step",self.time_step
+        # Sample a random minibatch of N transitions from replay buffer
+        minibatch = self.replay_buffer.getBatch(self.BATCH_SIZE)
+        state_batch = np.asarray([data[0] for data in minibatch])
+        action_batch = np.asarray([data[1] for data in minibatch])
+
+        # the reward batch is no longer just one column! (it's a list of 4 cols....)
+        reward_batch = np.asarray([data[2] for data in minibatch])
+
+        next_state_batch = np.asarray([data[3] for data in minibatch])
+        done_batch = np.asarray([data[4] for data in minibatch])
+
+        # for action_dim = 1
+        action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
+
+
+        if (self.safety_critic):
+            # Calculate y_batch
+            y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1,
+                                                 gamma=self.GAMMA)
+            y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2,
+                                                gamma=self.GAMMA)  # should be safety gamma but keep like this for now
+
+            # Update critic by minimizing the loss L
+            self.critic_network.train(y_batch_progress, state_batch, action_batch)
+            self.safety_critic_network.train(y_batch_penalty, state_batch, action_batch)
+        else:
+            # Calculate y_batch
+            y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0,
+                                               gamma=self.GAMMA)
+            # Update critic by minimizing the loss L
+            self.critic_network.train(y_batch_reward, state_batch, action_batch)
+
+        # Update the actor policy using the sampled gradient:
+        action_batch_for_gradients = self.actor_network.actions(state_batch)
+        # q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
+
+        if (self.safety_critic):
+            q_gradient_batch_progress = self.critic_network.gradients(state_batch, action_batch_for_gradients)
+            q_gradient_batch_penalty = self.safety_critic_network.gradients(state_batch, action_batch_for_gradients)
+            self.actor_network.train(q_gradient_batch_progress, state_batch)
+            self.actor_network.train(q_gradient_batch_penalty, state_batch)
+        else:
+            q_gradient_batch = self.critic_network.gradients(state_batch, action_batch_for_gradients)
+            self.actor_network.train(q_gradient_batch, state_batch)
+
+        # self.actor_network.train(q_gradient_batch, state_batch)
+
+        # Update the target networks
+        self.actor_network.update_target()
+        self.critic_network.update_target()
+        if (self.safety_critic):
+            self.safety_critic_network.update_target()
+
+    def train_sc2(self):
 
         ### Sample a random minibatch of N (BATCH_SIZE) transitions (s_i, a_i, r_i, s_i+1) from ReplayBuffer
         # print "train step",self.time_step
@@ -152,13 +216,12 @@ class Agent(AbstractAgent):
         # next_action = μ'(st+1 | θ'μ')
         next_action_batch = self.actor_network.target_actions(next_state_batch)
 
-        if(reward_col ==  0 or reward_col == 1):
-            # Q_values = Q'(Si+1, next_action | θ'Q)
-            q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
-        if(reward_col == 2 ):
+        if(self.safety_critic and reward_col == 2 ):
             # Q_values = Q'(Si+1, next_action | θ'Q)
             q_value_batch = self.safety_critic_network.target_q(next_state_batch, next_action_batch)
-
+        else:
+            # Q_values = Q'(Si+1, next_action | θ'Q)
+            q_value_batch = self.critic_network.target_q(next_state_batch, next_action_batch)
         y_batch = []
         for i in range(len(minibatch)):
             if done_batch[i]:
