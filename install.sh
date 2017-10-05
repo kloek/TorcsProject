@@ -20,6 +20,12 @@ cp run_ddpg.py $gym_torcs/
 rm $gym_torcs/config.py
 cp config.py $gym_torcs/
 
+# multirun folder
+#rm -rf $gym_torcs/multiple_runs
+#cp -r multiple_runns $gym_torcs/
+#cp $gym_torcs/multiple_runns/multiple_runns.sh $gym_torcs/multiple_runns.sh
+#chmod +x $gym_torcs/multiple_runns.sh
+
 # xml files for torcs
 cp docker/practice.xml ~/.torcs/config/raceman
 cp docker/practice.xml /usr/local/share/games/torcs/config/raceman
