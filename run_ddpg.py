@@ -11,6 +11,7 @@ import config
 import argparse
 
 from agents.ddpg_agent import Agent
+from agents.parts.result_inspector import create_all_plots
 
 import gc
 gc.enable()
@@ -260,6 +261,10 @@ class agent_runner(object):
 
     # everything that should be done at end of run!
     def finish(self):
+
+        # create all plots
+        create_all_plots(str(self.folder_name+"/"+ "result.npy"))
+
         # add finished to the run folder!
         os.system("mv " + self.folder_name.replace(" ", "\ ")  + " " + (self.folder_name.replace(" ", "\ ")+"_FINISHED"))
         self.env.end()  # This is for shutting down TORCS

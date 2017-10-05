@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 
 # episode, total_steps, best_total_reward, total_reward, r_t, epsilon
 # script assumes you now what you are doing, not much error checking!!!!
-COL_NAMES = ["episode", "total_steps", "best_total_reward", "total_reward", "r_t", "epsilon"]
+COL_NAMES = ["episode", "total_steps", "best_training_reward", "best_testing_reward", "total_reward", "train_indicator", "epsilon", "early_stop", "damage"]
+#[episode, total_steps, best_training_reward, best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop, damage]
 
 #y_col = None
 #x_col = None
@@ -34,15 +35,16 @@ COL_NAMES = ["episode", "total_steps", "best_total_reward", "total_reward", "r_t
 
     plt.savefig(filename + "_" + title + ".jpg")"""
 
-def create_plots(npy_filename):
+def create_reward_plot(npy_filename):
     # [episode, self.total_steps, self.best_training_reward, self.best_testing_reward, total_reward, train_indicator, self.epsilon, early_stop, ob['damage']])
 
     # load data from file!
     data = np.load(file=npy_filename)
+    plt.clf()
 
     # x / episode / steps
-    #col_x = 0 # for episode as x
-    col_x = 1 # for steps as x
+    col_x = 0 # for episode as x
+    #col_x = 1 # for steps as x
 
     # best training reward
     where = np.logical_and((np.isfinite(data[:,2])),(np.equal(data[:,5],1)))
@@ -58,6 +60,11 @@ def create_plots(npy_filename):
     where = np.logical_and((np.isfinite(data[:, 3])), (np.equal(data[:, 5], 0)))
     all_test_x = data[where, col_x]
     all_test_y = data[where, 4]
+
+    # all testing reward earliy stop
+    where = np.logical_and(np.logical_and((np.isfinite(data[:, 3])), (np.equal(data[:, 5], 0))), (np.equal(data[:, 7], True)))
+    early_test_x = data[where, col_x]
+    early_test_y = data[where, 4]
 
 
     # total reward ( episode )
@@ -78,11 +85,11 @@ def create_plots(npy_filename):
 
     # create reward plot
     #plt.plot(train_x, train_y, 'r-', test_x, test_y, 'k-', reward_x, reward_y, 'g.')
-    train_line = plt.plot(train_x, train_y, 'b--', label="Max Training Reward")
-    reward_dots = plt.plot(reward_x, reward_y, 'g.', label="Episode Reward")
+    #train_line = plt.plot(train_x, train_y, 'b--', label="Max Training Reward")
+    reward_dots = plt.plot(reward_x, reward_y, 'g.', label="Episode Reward (train and test)")
     best_test_line = plt.plot(best_test_x, best_test_y, 'k-', label="Max Testing Reward")
     all_test_line = plt.plot(all_test_x, all_test_y, 'r--', label="All Testing Reward")
-    damage_line = plt.plot(damage_x, damage_y, 'y--', label="Damage")
+    #damage_line = plt.plot(damage_x, damage_y, 'y--', label="Damage")
 
     # add legend
     plt.legend()
@@ -94,7 +101,34 @@ def create_plots(npy_filename):
     plt.savefig(npy_filename + "_" + "Reward" + ".jpg")
 
 
+def create_damage_plot(npy_filename):
+    # load data from file!
+    data = np.load(file=npy_filename)
 
+    # x / episode / steps
+    col_x = 0  # for episode as x
+    # col_x = 1 # for steps as x
+
+    # epsilon
+    col_damage = 8
+    damage_x = data[:, col_x]
+    damage_y = data[:, col_damage]
+
+    plt.clf()
+    damage_line = plt.plot(damage_x, damage_y, 'r--', label="Damage")
+
+    # add legend
+    plt.legend()
+
+    plt.ylabel("Damage")
+    plt.xlabel("Episode")
+    plt.title("Damage ")
+
+    plt.savefig(npy_filename + "_" + "Damage" + ".jpg")
+
+def create_all_plots(npy_filename):
+    create_reward_plot(npy_filename)
+    create_damage_plot(npy_filename)
 
 
 # for manually creating plots....
@@ -105,4 +139,4 @@ if __name__ == "__main__":
     root.withdraw()
     filename = filedialog.askopenfilename()
 
-    create_plots(npy_filename=filename)
+    create_reward_plot(npy_filename=filename)
