@@ -4,12 +4,12 @@
 is_training = True  # False just gives testrunns
 test_frequency = 20 # how often to test /episodes
 epsilon_start = 1  # TODO sys arg or config file
-episode_count = 10  # TODO sys arg or config file
-max_steps = 10  # TODO sys arg or config file
+episode_count = 2000  # TODO sys arg or config file
+max_steps = 2000  # TODO sys arg or config file
 EXPLORE = 300000.0
 
 PORT = 3108
-RUN_FOLDER = "~/new_runs/r3/" # use if ~/ outside gymtorcs folder
+RUN_FOLDER = "~/Documents/Thesis_work/results/r3/" # use if ~/ outside gymtorcs folder
 RUN_NAME = "r3b" # name added to runfolder
 gear_change = True #False = drive only on first gear, limited to 80 km/h
 safety_critic = False  # false = normal ddpg, True = double critic
