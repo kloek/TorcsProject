@@ -8,7 +8,7 @@ episode_count = 2000  # TODO sys arg or config file
 max_steps = 2000  # TODO sys arg or config file
 EXPLORE = 300000.0
 
-PORT = 3102
+PORT = 3101
 
 
 # Loggin related parameters

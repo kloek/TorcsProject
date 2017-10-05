@@ -263,7 +263,7 @@ class agent_runner(object):
     def finish(self):
 
         # create all plots
-        create_all_plots(str(self.folder_name+"/"+ "result.npy"))
+        create_all_plots(str(self.folder_name+"/"+ self.result.file_name))
 
         # add finished to the run folder!
         os.system("mv " + self.folder_name.replace(" ", "\ ")  + " " + (self.folder_name.replace(" ", "\ ")+"_FINISHED"))
