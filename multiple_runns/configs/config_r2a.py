@@ -9,7 +9,7 @@ max_steps = 10  # TODO sys arg or config file
 EXPLORE = 300000.0
 
 PORT = 3101
-RUN_FOLDER = "new_runs/r2/" # use if ~/ outside gymtorcs folder
+RUN_FOLDER = "~/Documents/Thesis_work/results/r2/" # use if ~/ outside gymtorcs folder
 RUN_NAME = "r2a" # name added to runfolder
 gear_change = False #False = drive only on first gear, limited to 80 km/h
 safety_critic = False  # false = normal ddpg, True = double critic
