@@ -120,22 +120,17 @@ class Agent(AbstractAgent):
         # for action_dim = 1
         action_batch = np.resize(action_batch, [self.BATCH_SIZE, self.action_dim])
 
+        # Calculate y_batch
+        y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0, self.GAMMA)
+        y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1, self.GAMMA)
+        y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2, self.GAMMA) # should be like this since safety gamma wasnt implemented at this stage
+        y_batch_reward_old = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 3, self.GAMMA)
 
-        if (self.safety_critic):
-            # Calculate y_batch
-            y_batch_progress = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 1,
-                                                 gamma=self.GAMMA)
-            y_batch_penalty = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 2,
-                                                gamma=self.GAMMA)  # should be safety gamma but keep like this for now
-
-            # Update critic by minimizing the loss L
+        # Update critic by minimizing the loss L
+        if (self.critic_network):
             self.critic_network.train(y_batch_progress, state_batch, action_batch)
             self.safety_critic_network.train(y_batch_penalty, state_batch, action_batch)
         else:
-            # Calculate y_batch
-            y_batch_reward = self.calc_y_batch(done_batch, minibatch, next_state_batch, reward_batch, 0,
-                                               gamma=self.GAMMA)
-            # Update critic by minimizing the loss L
             self.critic_network.train(y_batch_reward, state_batch, action_batch)
 
         # Update the actor policy using the sampled gradient:
