@@ -84,30 +84,58 @@
 #cp multiple_runns/configs/config_r6b.py config.py
 #python3 run_ddpg.py
 
-#r7: add safety critic gamma and test a couple:
+#r7a: add safety critic gamma and test a couple: WITHOUT GEARS
+#r71: safety_gamma = 0.99
+#rm config.py
+#cp multiple_runns/configs/r7a/config_r71.py config.py
+#python3 run_ddpg.py
+
+#r72: safety_gamma = 0.97
+#rm config.py
+#cp multiple_runns/configs/r7a/config_r72.py config.py
+#python3 run_ddpg.py
+
+#r73: safety_gamma = 0.95
+#rm config.py
+#cp multiple_runns/configs/r7a/config_r73.py config.py
+#python3 run_ddpg.py
+
+#r74: safety_gamma = 0.93
+#rm config.py
+#cp multiple_runns/configs/r7a/config_r74.py config.py
+#python3 run_ddpg.py
+
+#r75: safety_gamma = 0.91
+#rm config.py
+#cp multiple_runns/configs/r7a/config_r75.py config.py
+#python3 run_ddpg.py
+
+#==========================================================
+
+#r7b: add safety critic gamma and test a couple: WITH GEARS
 #r71: safety_gamma = 0.99
 rm config.py
-cp multiple_runns/configs/r7a/config_r71.py config.py
+cp multiple_runns/configs/r7b/config_r71.py config.py
 python3 run_ddpg.py
 
 #r72: safety_gamma = 0.97
 rm config.py
-cp multiple_runns/configs/r7a/config_r72.py config.py
+cp multiple_runns/configs/r7b/config_r72.py config.py
 python3 run_ddpg.py
 
 #r73: safety_gamma = 0.95
 rm config.py
-cp multiple_runns/configs/r7a/config_r73.py config.py
+cp multiple_runns/configs/r7b/config_r73.py config.py
 python3 run_ddpg.py
 
 #r74: safety_gamma = 0.93
 rm config.py
-cp multiple_runns/configs/r7a/config_r74.py config.py
+cp multiple_runns/configs/r7b/config_r74.py config.py
 python3 run_ddpg.py
 
 #r75: safety_gamma = 0.91
 rm config.py
-cp multiple_runns/configs/r7a/config_r75.py config.py
+cp multiple_runns/configs/r7b/config_r75.py config.py
 python3 run_ddpg.py
 
 
