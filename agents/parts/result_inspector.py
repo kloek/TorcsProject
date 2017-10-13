@@ -139,4 +139,4 @@ if __name__ == "__main__":
     root.withdraw()
     filename = filedialog.askopenfilename()
 
-    create_reward_plot(npy_filename=filename)
+    create_all_plots(npy_filename=filename)

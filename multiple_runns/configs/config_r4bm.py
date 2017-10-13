@@ -10,8 +10,8 @@ EXPLORE = 300000.0
 
 PORT = 3107
 RUN_FOLDER = "~/Documents/Thesis_work/results/r4/" # use if ~/ outside gymtorcs folder
-RUN_NAME = "r4am" # name added to runfolder
-gear_change = False #False = drive only on first gear, limited to 80 km/h
+RUN_NAME = "r4bm" # name added to runfolder
+gear_change = True #False = drive only on first gear, limited to 80 km/h
 safety_critic = False  # false = normal ddpg, True = double critic
 SC_VERSION = 1
 
